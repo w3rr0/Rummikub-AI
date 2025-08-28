@@ -1,4 +1,4 @@
-from typing import FrozenSet, List
+from typing import FrozenSet, List, Set
 from collections import defaultdict
 from itertools import combinations
 
@@ -35,3 +35,76 @@ def generate_all_possible_melds(tiles: FrozenSet[Tile]) -> List[FrozenSet[Tile]]
                         possible_melds.add(frozenset(run_candidate))
 
     return list(possible_melds)
+
+
+def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[List[Tile]]]:
+    """
+    Główna funkcja, która znajduje wszystkie możliwe ruchy (nowe układy stołu).
+    """
+    initial_table_fset = frozenset(frozenset(meld) for meld in table)
+
+    # Pula wszystkich klocków do ułożenia
+    workspace_tiles = frozenset(hand.union(*[set(meld) for meld in table]))
+    if not workspace_tiles:
+        return []
+
+    # Wstępne wygenerowanie wszystkich możliwych poprawnych sekwensów
+    all_melds = generate_all_possible_melds(workspace_tiles)
+
+    # Optymalizacja: Stwórz mapę {klocek -> [sekwensy, które go zawierają]}
+    # To drastycznie przyspiesza wyszukiwanie w pętli rekurencyjnej.
+    tile_to_melds_map = defaultdict(list)
+    for meld in all_melds:
+        for tile in meld:
+            tile_to_melds_map[tile].append(meld)
+
+    solutions = []  # Tu będziemy przechowywać znalezione kompletne układy stołu
+
+    def solve(tiles_to_cover: FrozenSet[Tile], current_layout: List[FrozenSet[Tile]]):
+        """
+        Funkcja rekurencyjna szukająca dokładnego pokrycia.
+        """
+        # --- Warunek bazowy: jeśli nie ma już klocków, znaleźliśmy rozwiązanie ---
+        if not tiles_to_cover:
+            # Sortujemy, aby uniknąć duplikatów w różnej kolejności
+            sorted_layout = tuple(sorted(list(m) for m in current_layout))
+            solutions.append(sorted_layout)
+            return
+
+        # --- Krok rekurencyjny ---
+        # Wybierz jeden klocek do "pokrycia", aby zawęzić poszukiwania.
+        # Wybranie najrzadszego (w najmniejszej liczbie sekwensów) to dobra heurystyka.
+        # Dla prostoty wybierzmy po prostu pierwszy z brzegu.
+        first_tile = min(tiles_to_cover)
+
+        # Iteruj przez wszystkie sekwensy, które mogą "pokryć" ten klocek
+        for meld in tile_to_melds_map[first_tile]:
+            # Sprawdź, czy ten sekwens można użyć (czy jego klocki są w puli do pokrycia)
+            if meld.issubset(tiles_to_cover):
+                # Jeśli tak, to rekurencyjnie szukaj dalej z mniejszą pulą klocków
+                solve(tiles_to_cover - meld, current_layout + [meld])
+
+    # Uruchomienie algorytmu
+    solve(workspace_tiles, [])
+
+    # Przetwarzanie unikalnych rozwiązań
+    final_moves = []
+    unique_solutions = set(solutions)
+
+    for layout_tuple in unique_solutions:
+        # Konwertuj z powrotem na listę list
+        new_table = [list(meld) for meld in layout_tuple]
+
+        # Sprawdź, czy ruch jest legalny:
+        # 1. Nowy układ musi być inny niż początkowy
+        # 2. Przynajmniej jeden klocek z ręki musiał zostać użyty
+        new_table_fset = frozenset(frozenset(meld) for meld in new_table)
+        tiles_in_new_table = {tile for meld in new_table for tile in meld}
+
+        is_new_layout = (new_table_fset != initial_table_fset)
+        uses_hand_tile = not hand.isdisjoint(tiles_in_new_table)
+
+        if is_new_layout and uses_hand_tile:
+            final_moves.append(new_table)
+
+    return final_moves
