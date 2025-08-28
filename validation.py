@@ -42,3 +42,7 @@ def is_valid_run(tiles: List[Tile]) -> bool:
         expected_number = tile.number + 1
 
     return True
+
+def is_valid_meld(tiles: List[Tile]) -> bool:
+    """Sprawdza, czy układ jest poprawną grupą LUB szeregiem."""
+    return is_valid_group(tiles) or is_valid_run(tiles)
