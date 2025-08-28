@@ -1,6 +1,6 @@
 import pytest
 from game import Tile, JOKER
-from validation import is_valid_group, is_valid_meld
+from validation import is_valid_group, is_valid_meld, is_table_valid, is_valid_run
 
 # Definicje kolorów dla czytelności testów
 R = "Red"
@@ -46,3 +46,52 @@ def test_is_valid_group(group, expected):
 def test_is_valid_meld(meld, expected):
     """Testuje, czy układ jest poprawną grupą LUB szeregiem."""
     assert is_valid_meld(meld) == expected
+
+
+# --- Testy dla is_table_valid ---
+
+@pytest.mark.parametrize("table, expected", [
+    # Poprawne stoły
+    ([], True), # Pusty stół jest poprawny
+    (
+        [
+            [Tile(7, R), Tile(7, B), Tile(7, G)],
+            [Tile(1, O), Tile(2, O), Tile(3, O), Tile(4, O)]
+        ],
+        True
+    ),
+    (
+        [
+            [Tile(10, R), JOKER, Tile(10, B)],
+            [Tile(5, G), Tile(6, G), JOKER]
+        ],
+        True
+    ),
+
+    # Niepoprawne stoły
+    (
+        [
+            [Tile(7, R), Tile(7, B)] # Jeden z układów jest niepoprawny
+        ],
+        False
+    ),
+    (
+        [
+            [Tile(7, R), Tile(7, B), Tile(7, G)], # Poprawny
+            [Tile(1, O), Tile(3, O), Tile(4, O)]  # Niepoprawny
+        ],
+        False
+    ),
+])
+def test_is_table_valid(table, expected):
+    """Testuje walidację całego stołu."""
+    assert is_table_valid(table) == expected
+
+def test_is_valid_run_with_fix():
+    """
+    Ten test sprawdza konkretnie przypadek, który byłby błędny
+    bez sugerowanej poprawki w validation.py.
+    """
+    # Ten szereg jest niepoprawny, ponieważ zawiera dwa razy klocek "Czerwony 7"
+    invalid_run_with_duplicates = [Tile(7, R), Tile(7, R), Tile(8, R)]
+    assert not is_valid_run(invalid_run_with_duplicates)
