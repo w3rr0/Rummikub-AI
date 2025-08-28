@@ -15,3 +15,30 @@ def is_valid_group(tiles: List[Tile]) -> bool:
         return False
 
     return True
+
+
+def is_valid_run(tiles: List[Tile]) -> bool:
+    """Sprawdza, czy układ jest poprawnym SZEREGIEM."""
+    if len(tiles) < 3:
+        return False
+
+    # Sortowanie klocków (bez jokerów)
+    non_jokers = sorted([tile for tile in tiles if tile != JOKER])
+
+    # Sprawdzenie koloru
+    main_color = non_jokers[0].color
+    if not all(tile.color == main_color for tile in non_jokers):
+        return False
+
+    # Sprawdzenie sekwencji numerów z uwzględnieniem jokerów
+    num_jokers = tiles.count(JOKER)
+    expected_number = non_jokers[0].number
+
+    for tile in non_jokers:
+        diff = tile.number - expected_number
+        if diff > num_jokers:  # Przeskok jest zbyt duży, by wypełnić go jokerami
+            return False
+        num_jokers -= (diff - 1)  # "Zużywamy" jokery na wypełnienie luki
+        expected_number = tile.number + 1
+
+    return True
