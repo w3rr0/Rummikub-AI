@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List, Set
 
 # Dataclass dla zwięzłości i czytelności
 @dataclass(frozen=True, order=True)
@@ -12,3 +13,9 @@ class Tile:
 
 # Definicja Jokera
 JOKER = Tile(0, "Joker")
+
+
+class GameState:
+    def __init__(self, hand: Set[Tile], table: List[List[Tile]]):
+        self.hand = hand
+        self.table = table
