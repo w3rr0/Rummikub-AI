@@ -30,6 +30,10 @@ def is_valid_run(tiles: List[Tile]) -> bool:
     if not all(tile.color == main_color for tile in non_jokers):
         return False
 
+    # Sprawdzenie unikalności numerów (bez jokerów)
+    if len(non_jokers) != len(set(non_jokers)):
+        return False
+
     # Sprawdzenie sekwencji numerów z uwzględnieniem jokerów
     num_jokers = tiles.count(JOKER)
     expected_number = non_jokers[0].number
