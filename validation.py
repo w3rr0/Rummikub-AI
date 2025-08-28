@@ -46,3 +46,9 @@ def is_valid_run(tiles: List[Tile]) -> bool:
 def is_valid_meld(tiles: List[Tile]) -> bool:
     """Sprawdza, czy układ jest poprawną grupą LUB szeregiem."""
     return is_valid_group(tiles) or is_valid_run(tiles)
+
+def is_table_valid(table: List[List[Tile]]) -> bool:
+    """Sprawdza, czy cały stół jest poprawny."""
+    if not table:
+        return True
+    return all(is_valid_meld(meld) for meld in table)
