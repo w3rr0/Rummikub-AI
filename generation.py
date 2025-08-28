@@ -58,7 +58,7 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[
         for tile in meld:
             tile_to_melds_map[tile].append(meld)
 
-    solutions = []  # Tu będziemy przechowywać znalezione kompletne układy stołu
+    solutions = set()  # Tu będziemy przechowywać znalezione kompletne układy stołu
 
     def solve(tiles_to_cover: FrozenSet[Tile], current_layout: List[FrozenSet[Tile]]):
         """
@@ -66,16 +66,15 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[
         """
         # --- Warunek bazowy: jeśli nie ma już klocków, znaleźliśmy rozwiązanie ---
         if not tiles_to_cover:
-            # Sortujemy, aby uniknąć duplikatów w różnej kolejności
-            sorted_layout = tuple(sorted(list(m) for m in current_layout))
-            solutions.append(sorted_layout)
+            # Using tuple to make the layout hashable
+            solutions.add(frozenset(current_layout))
             return
 
         # --- Krok rekurencyjny ---
         # Wybierz jeden klocek do "pokrycia", aby zawęzić poszukiwania.
         # Wybranie najrzadszego (w najmniejszej liczbie sekwensów) to dobra heurystyka.
         # Dla prostoty wybierzmy po prostu pierwszy z brzegu.
-        first_tile = min(tiles_to_cover)
+        first_tile = next(iter(tiles_to_cover))
 
         # Iteruj przez wszystkie sekwensy, które mogą "pokryć" ten klocek
         for meld in tile_to_melds_map[first_tile]:
@@ -89,11 +88,11 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[
 
     # Przetwarzanie unikalnych rozwiązań
     final_moves = []
-    unique_solutions = set(solutions)
+    # solutions now contains tuples, which are hashable
 
-    for layout_tuple in unique_solutions:
+    for layout in solutions:
         # Konwertuj z powrotem na listę list
-        new_table = [list(meld) for meld in layout_tuple]
+        new_table = [list(meld) for meld in layout]
 
         # Sprawdź, czy ruch jest legalny:
         # 1. Nowy układ musi być inny niż początkowy
