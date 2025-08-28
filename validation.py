@@ -40,9 +40,9 @@ def is_valid_run(tiles: List[Tile]) -> bool:
 
     for tile in non_jokers:
         diff = tile.number - expected_number
-        if diff > num_jokers:  # Przeskok jest zbyt duży, by wypełnić go jokerami
+        if diff < 0 or diff > num_jokers:  # Przeskok jest zbyt duży, by wypełnić go jokerami
             return False
-        num_jokers -= (diff - 1)  # "Zużywamy" jokery na wypełnienie luki
+        num_jokers -= diff  # "Zużywamy" jokery na wypełnienie luki
         expected_number = tile.number + 1
 
     return True
