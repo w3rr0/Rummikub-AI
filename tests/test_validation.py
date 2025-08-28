@@ -1,6 +1,6 @@
 import pytest
 from game import Tile, JOKER
-from validation import is_valid_group
+from validation import is_valid_group, is_valid_meld
 
 # Definicje kolorów dla czytelności testów
 R = "Red"
@@ -30,3 +30,19 @@ O = "Orange"
 def test_is_valid_group(group, expected):
     """Testuje walidację grup."""
     assert is_valid_group(group) == expected
+
+
+# --- Testy dla is_valid_meld ---
+
+@pytest.mark.parametrize("meld, expected", [
+    # Poprawna grupa
+    ([Tile(5, R), Tile(5, B), Tile(5, G)], True),
+    # Poprawny szereg
+    ([Tile(5, R), Tile(6, R), Tile(7, R)], True),
+    # Niepoprawny układ
+    ([Tile(5, R), Tile(6, B), Tile(7, G)], False),
+    ([Tile(1, R), Tile(1, R)], False),
+])
+def test_is_valid_meld(meld, expected):
+    """Testuje, czy układ jest poprawną grupą LUB szeregiem."""
+    assert is_valid_meld(meld) == expected
