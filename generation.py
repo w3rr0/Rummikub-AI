@@ -5,32 +5,41 @@ from itertools import combinations
 from game import Tile, JOKER
 from validation import is_valid_group, is_valid_run
 
-def generate_all_possible_melds(tiles: FrozenSet[Tile]) -> List[FrozenSet[Tile]]:
+
+def generate_all_possible_melds(tiles: List[Tile]) -> List[FrozenSet[Tile]]:
     """Generuje wszystkie możliwe poprawne grupy i szeregi z danego zbioru klocków."""
     possible_melds = set()
-    unique_tiles = list(tiles)
 
     # 1. Generuj grupy
     for r in range(3, 5): # Grupy mogą mieć 3 lub 4 klocki
-        for group_candidate in combinations(unique_tiles, r):
-            if is_valid_group(list(group_candidate)):
+        for group_candidate_tuple in combinations(tiles, r):
+            group_candidate = list(group_candidate_tuple)
+            if is_valid_group(group_candidate):
                 possible_melds.add(frozenset(group_candidate))
 
     # 2. Generuj szeregi
     tiles_by_color = defaultdict(list)
-    for tile in unique_tiles:
+    jokers = [t for t in tiles if t == JOKER]
+    non_jokers = [t for t in tiles if t != JOKER]
+
+    for tile in non_jokers:
         tiles_by_color[tile.color].append(tile)
 
     for color in tiles_by_color:
-        sorted_tiles = sorted(tiles_by_color[color])
-        if len(sorted_tiles) >= 3:
-            for r in range(3, len(sorted_tiles) + 1):
-                for i in range(len(sorted_tiles) - r + 1):
-                    run_candidate = sorted_tiles[i:i + r]
-                    if is_valid_run(run_candidate):
-                        possible_melds.add(frozenset(run_candidate))
+        color_tiles = sorted(tiles_by_color[color])
+        for r_tiles in range(1, len(color_tiles) + 1):
+            for tile_subset_tuple in combinations(color_tiles, r_tiles):
+                for r_jokers in range(len(jokers) + 1):
+                    for joker_subset_tuple in combinations(jokers, r_jokers):
+                        if len(tile_subset_tuple) + len(joker_subset_tuple) < 3:
+                            continue
+
+                        run_candidate = list(tile_subset_tuple) + list(joker_subset_tuple)
+                        if is_valid_run(run_candidate):
+                            possible_melds.add(frozenset(run_candidate))
 
     return list(possible_melds)
+
 
 def pre_filter_unplayable_tiles(hand: Set[Tile], table: List[List[Tile]]) -> Tuple[Set[Tile], Set[Tile]]:
     if not hand:
@@ -94,7 +103,6 @@ def pre_filter_unplayable_tiles(hand: Set[Tile], table: List[List[Tile]]) -> Tup
     return playable_hand, unplayable_hand
 
 
-
 def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]], first_only=False) -> List[List[List[Tile]]]:
     """
     Główna funkcja, która znajduje wszystkie możliwe ruchy (nowe układy stołu).
@@ -109,8 +117,7 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]], first_only=Fa
         return []
 
     # Wstępne wygenerowanie wszystkich możliwych poprawnych sekwensów
-    unique_tiles = frozenset(workspace_tiles_counter.keys())
-    all_melds = generate_all_possible_melds(unique_tiles)
+    all_melds = generate_all_possible_melds(all_tiles_list)
 
     # Optymalizacja: Stwórz mapę {klocek -> [sekwensy, które go zawierają]}
     # To drastycznie przyspiesza wyszukiwanie w pętli rekurencyjnej.
@@ -176,6 +183,7 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]], first_only=Fa
                 return final_moves
 
     return final_moves
+
 
 def possible_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[Tuple[List[List[Tile]], Set[Tile]]]:
     """
