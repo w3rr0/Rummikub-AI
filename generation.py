@@ -95,7 +95,7 @@ def pre_filter_unplayable_tiles(hand: Set[Tile], table: List[List[Tile]]) -> Tup
 
 
 
-def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[List[Tile]]]:
+def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]], first_only=False) -> List[List[List[Tile]]]:
     """
     Główna funkcja, która znajduje wszystkie możliwe ruchy (nowe układy stołu).
     """
@@ -125,6 +125,8 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[
         """
         Funkcja rekurencyjna szukająca dokładnego pokrycia.
         """
+        if first_only and solutions:
+            return
         # --- Warunek bazowy: jeśli nie ma już klocków, znaleźliśmy rozwiązanie ---
         if not tiles_to_cover:
             # Using tuple to make the layout hashable
@@ -170,10 +172,21 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[
 
         if is_new_layout and uses_hand_tile:
             final_moves.append(new_table)
+            if first_only:
+                return final_moves
 
     return final_moves
 
-def possible_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[List[List[Tile]]]]:
+def possible_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[Tuple[List[List[Tile]], Set[Tile]]]:
+    """
+    Returns all possible new table setups,
+    where each table setup is a list of all groups,
+    which are lists of tiles belonging to that group
+
+    :param hand:
+    :param table:
+    :return:
+    """
     hand_to_check = pre_filter_unplayable_tiles(hand, table)
     if not hand_to_check:
         return []
@@ -184,12 +197,14 @@ def possible_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[List[L
 
     for r in range(1, len(hand_to_check) + 1):
         for combo in combinations(hand_to_check, r):
-            solutions_for_combo = find_all_valid_moves(set(combo), table)
+            used_hand_tiles = set(combo)
+            solution_for_combo = find_all_valid_moves(used_hand_tiles, table, True)
 
-            for new_table in solutions_for_combo:
-                table_signature = frozenset(frozenset(meld) for meld in new_table)
+            if solution_for_combo:
+                solution = solution_for_combo[0]
+                table_signature = frozenset(frozenset(solution))
                 if table_signature not in seen_tables:
-                    all_found_moves.append(new_table)
+                    all_found_moves.append((solution, used_hand_tiles))
                     seen_tables.add(table_signature)
 
     return all_found_moves
