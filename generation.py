@@ -41,31 +41,33 @@ def generate_all_possible_melds(tiles: List[Tile]) -> List[FrozenSet[Tile]]:
     return list(possible_melds)
 
 
-def pre_filter_unplayable_tiles(hand: Set[Tile], table: List[List[Tile]]) -> Tuple[Set[Tile], Set[Tile]]:
+def pre_filter_unplayable_tiles(hand: List[Tile], table: List[List[Tile]]) -> Tuple[List[Tile], List[Tile]]:
     if not hand:
         return set(), set()
 
-    pool = hand.union(*[set(meld) for meld in table])
+    pool = hand + [tile for meld in table for tile in meld]
     pool_counter = Counter(pool)
-    joker_count = pool_counter[JOKER]
+    joker_count = pool_counter.get(JOKER, 0)
 
-    playable_hand = set()
-    unplayable_hand = set()
+    playable_hand = []
+    unplayable_hand = []
 
-    for tile in hand:
+    for tile, count in Counter(hand).items():
         if tile == JOKER:
-            playable_hand.add(tile)
+            playable_hand.extend([JOKER]*count)
             continue
+
         is_playable = False
 
         pool_counter[tile] -= 1
 
         colors_to_check = {'Red', 'Blue', 'Yellow', 'Black'}
-        colors_to_check.discard(tile.color)
+        if tile.color in colors_to_check:
+            colors_to_check.discard(tile.color)
 
         same_number_partners = 0
         for color in colors_to_check:
-            same_number_partners += pool_counter[Tile(tile.number, color)]
+            same_number_partners += pool_counter.get(Tile(tile.number, color), 0)
 
         if (same_number_partners + joker_count) >= 2:
             is_playable = True
@@ -75,30 +77,26 @@ def pre_filter_unplayable_tiles(hand: Set[Tile], table: List[List[Tile]]) -> Tup
 
             # Kombinacja [N-2, N-1, N]
             needed1, needed2 = Tile(num - 1, color), Tile(num - 2, color)
-            if (pool_counter[needed1] + pool_counter[needed2] + joker_count) >= 2 and \
-               (pool_counter[needed1] > 0 or joker_count > 0) and \
-               (pool_counter[needed2] > 0 or joker_count > (1 if pool_counter[needed1] == 0 else 0)):
+            if (pool_counter.get(needed1, 0) + pool_counter.get(needed2, 0) + joker_count) >= 2:
                 is_playable = True
 
             # Kombinacja [N-1, N, N+1]
             if not is_playable:
                 needed1, needed2 = Tile(num - 1, color), Tile(num + 1, color)
-                if (pool_counter[needed1] + pool_counter[needed2] + joker_count) >= 2:
+                if (pool_counter.get(needed1, 0) + pool_counter.get(needed2, 0) + joker_count) >= 1:
                     is_playable = True
 
             if not is_playable:
                 needed1, needed2 = Tile(num + 1, color), Tile(num + 2, color)
-                if (pool_counter[needed1] + pool_counter[needed2] + joker_count) >= 2 and \
-                   (pool_counter[needed1] > 0 or joker_count > 0) and \
-                   (pool_counter[needed2] > 0 or joker_count > (1 if pool_counter[needed1] == 0 else 0)):
+                if (pool_counter.get(needed1, 0) + pool_counter.get(needed2, 0) + joker_count) >= 2:
                     is_playable = True
 
-        if is_playable:
-            playable_hand.add(tile)
-        else:
-            unplayable_hand.add(tile)
-
         pool_counter[tile] += 1
+
+        if is_playable:
+            playable_hand.extend([tile] * count)
+        else:
+            unplayable_hand.extend([tile] * count)
 
     return playable_hand, unplayable_hand
 
