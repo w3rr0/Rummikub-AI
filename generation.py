@@ -202,7 +202,7 @@ def possible_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[Tuple[List[
 
             if solution_for_combo:
                 solution = solution_for_combo[0]
-                table_signature = frozenset(frozenset(solution))
+                table_signature = frozenset(frozenset(meld) for meld in solution)
                 if table_signature not in seen_tables:
                     all_found_moves.append((solution, used_hand_tiles))
                     seen_tables.add(table_signature)
