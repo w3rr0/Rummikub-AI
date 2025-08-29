@@ -1,8 +1,8 @@
-from typing import FrozenSet, List, Set
+from typing import FrozenSet, List, Set, Tuple
 from collections import defaultdict, Counter
 from itertools import combinations
 
-from game import Tile
+from game import Tile, JOKER
 from validation import is_valid_group, is_valid_run
 
 def generate_all_possible_melds(tiles: FrozenSet[Tile]) -> List[FrozenSet[Tile]]:
@@ -31,6 +31,68 @@ def generate_all_possible_melds(tiles: FrozenSet[Tile]) -> List[FrozenSet[Tile]]
                         possible_melds.add(frozenset(run_candidate))
 
     return list(possible_melds)
+
+def pre_filter_unplayable_tiles(hand: Set[Tile], table: List[List[Tile]]) -> Tuple[Set[Tile], Set[Tile]]:
+    if not hand:
+        return set(), set()
+
+    pool = hand.union(*[set(meld) for meld in table])
+    pool_counter = Counter(pool)
+    joker_count = pool_counter[JOKER]
+
+    playable_hand = set()
+    unplayable_hand = set()
+
+    for tile in hand:
+        if tile == JOKER:
+            playable_hand.add(tile)
+            continue
+        is_playable = False
+
+        pool_counter[tile] -= 1
+
+        colors_to_check = {'Red', 'Blue', 'Yellow', 'Black'}
+        colors_to_check.discard(tile.color)
+
+        same_number_partners = 0
+        for color in colors_to_check:
+            same_number_partners += pool_counter[Tile(tile.number, color)]
+
+        if (same_number_partners + joker_count) >= 2:
+            is_playable = True
+
+        if not is_playable:
+            num, color = tile.number, tile.color
+
+            # Kombinacja [N-2, N-1, N]
+            needed1, needed2 = Tile(num - 1, color), Tile(num - 2, color)
+            if (pool_counter[needed1] + pool_counter[needed2] + joker_count) >= 2 and \
+               (pool_counter[needed1] > 0 or joker_count > 0) and \
+               (pool_counter[needed2] > 0 or joker_count > (1 if pool_counter[needed1] == 0 else 0)):
+                is_playable = True
+
+            # Kombinacja [N-1, N, N+1]
+            if not is_playable:
+                needed1, needed2 = Tile(num - 1, color), Tile(num + 1, color)
+                if (pool_counter[needed1] + pool_counter[needed2] + joker_count) >= 2:
+                    is_playable = True
+
+            if not is_playable:
+                needed1, needed2 = Tile(num + 1, color), Tile(num + 2, color)
+                if (pool_counter[needed1] + pool_counter[needed2] + joker_count) >= 2 and \
+                   (pool_counter[needed1] > 0 or joker_count > 0) and \
+                   (pool_counter[needed2] > 0 or joker_count > (1 if pool_counter[needed1] == 0 else 0)):
+                    is_playable = True
+
+        if is_playable:
+            playable_hand.add(tile)
+        else:
+            unplayable_hand.add(tile)
+
+        pool_counter[tile] += 1
+
+    return playable_hand, unplayable_hand
+
 
 
 def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[List[Tile]]]:
@@ -110,3 +172,26 @@ def find_all_valid_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[
             final_moves.append(new_table)
 
     return final_moves
+
+def possible_moves(hand: Set[Tile], table: List[List[Tile]]) -> List[List[List[List[Tile]]]]:
+    hand_to_check = pre_filter_unplayable_tiles(hand, table)
+    if not hand_to_check:
+        return []
+    else:
+        hand_to_check = hand_to_check[0]
+    all_found_moves = []
+    seen_tables = set()
+
+    for r in range(1, len(hand_to_check) + 1):
+        for combo in combinations(hand_to_check, r):
+            solutions_for_combo = find_all_valid_moves(set(combo), table)
+
+            for new_table in solutions_for_combo:
+                table_signature = frozenset(frozenset(meld) for meld in new_table)
+                if table_signature not in seen_tables:
+                    all_found_moves.append(new_table)
+                    seen_tables.add(table_signature)
+
+    return all_found_moves
+
+
