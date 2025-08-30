@@ -32,6 +32,16 @@ class GameState:
         self.done = False
         self.winner = Optional[int] = None
 
+    def clone(self):
+        st = GameState(self.players)
+        st.stock = self.stock.copy()
+        st.hands = [hand.copy() for hand in self.hands]
+        st.table = [meld.copy() for meld in self.table]
+        st.current_player = self.current_player
+        st.done = self.done
+        st.winner = self.winner
+        return st
+
 
 class GameEngine:
     TilePull = ([Tile(number, color)
