@@ -1,49 +1,53 @@
 from typing import List
-from game import Tile, JOKER
+from game import Tile
+
 
 def is_valid_group(tiles: List[Tile]) -> bool:
     """Sprawdza, czy układ jest poprawną GRUPĄ."""
     if len(tiles) < 3 or len(tiles) > 4:
         return False
 
-    numbers = {tile.number for tile in tiles if tile != JOKER}
-    if len(numbers) > 1:  # Wszystkie muszą mieć ten sam numer
-        return False
+    non_jokers = [tile for tile in tiles if tile.color != 'Joker']
 
-    colors = {tile.color for tile in tiles if tile != JOKER}
-    if len(colors) != len([t for t in tiles if t != JOKER]):  # Sprawdzenie unikalności kolorów
+    # Jeśli są klocki inne niż jokery, sprawdź ich numery
+    if non_jokers:
+        first_number = non_jokers[0].number
+        if not all(tile.number == first_number for tile in non_jokers):
+            return False
+
+    # Sprawdź unikalność kolorów
+    colors = {tile.color for tile in non_jokers}
+    if len(colors) != len(non_jokers):
         return False
 
     return True
 
 
 def is_valid_run(tiles: List[Tile]) -> bool:
-    """Sprawdza, czy układ jest poprawnym SZEREGIEM."""
+    """Sprawdza, czy układ jest poprawnym SZEREGIEM (nowa, poprawiona wersja)."""
     if len(tiles) < 3:
         return False
 
-    # Sortowanie klocków (bez jokerów)
-    non_jokers = sorted([tile for tile in tiles if tile != JOKER])
+    non_jokers = sorted([tile for tile in tiles if tile.color != 'Joker'])
 
-    # Sprawdzenie koloru
+    if not non_jokers:
+        return True
+
     main_color = non_jokers[0].color
     if not all(tile.color == main_color for tile in non_jokers):
         return False
 
-    # Sprawdzenie unikalności numerów (bez jokerów)
-    if len(non_jokers) != len(set(non_jokers)):
+    numbers = [tile.number for tile in non_jokers]
+    if len(numbers) != len(set(numbers)):
         return False
 
-    # Sprawdzenie sekwencji numerów z uwzględnieniem jokerów
-    num_jokers = tiles.count(JOKER)
-    expected_number = non_jokers[0].number
+    min_num = numbers[0]
+    max_num = numbers[-1]
 
-    for tile in non_jokers:
-        diff = tile.number - expected_number
-        if diff < 0 or diff > num_jokers:  # Przeskok jest zbyt duży, by wypełnić go jokerami
-            return False
-        num_jokers -= diff  # "Zużywamy" jokery na wypełnienie luki
-        expected_number = tile.number + 1
+    span = max_num - min_num + 1
+
+    if span > len(tiles):
+        return False
 
     return True
 

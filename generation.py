@@ -1,12 +1,12 @@
-from typing import FrozenSet, List, Set, Tuple
+from typing import List, Tuple
 from collections import defaultdict, Counter
 from itertools import combinations
 
-from game import Tile, JOKER
+from game import Tile
 from validation import is_valid_group, is_valid_run
 
 
-def generate_all_possible_melds(tiles: List[Tile]) -> List[FrozenSet[Tile]]:
+def generate_all_possible_melds(tiles: List[Tile]) -> List[Tuple[Tile]]:
     """Generuje wszystkie możliwe poprawne grupy i szeregi z danego zbioru klocków."""
     possible_melds = set()
 
@@ -15,46 +15,48 @@ def generate_all_possible_melds(tiles: List[Tile]) -> List[FrozenSet[Tile]]:
         for group_candidate_tuple in combinations(tiles, r):
             group_candidate = list(group_candidate_tuple)
             if is_valid_group(group_candidate):
-                possible_melds.add(frozenset(group_candidate))
+                possible_melds.add(tuple(sorted(group_candidate)))
 
     # 2. Generuj szeregi
     tiles_by_color = defaultdict(list)
-    jokers = [t for t in tiles if t == JOKER]
-    non_jokers = [t for t in tiles if t != JOKER]
+    jokers = [t for t in tiles if t.color == 'Joker']
+    non_jokers = [t for t in tiles if t.color != 'Joker']
 
     for tile in non_jokers:
         tiles_by_color[tile.color].append(tile)
 
     for color in tiles_by_color:
-        color_tiles = sorted(tiles_by_color[color])
+        color_tiles = sorted(list(set(tiles_by_color[color])))
         for r_tiles in range(1, len(color_tiles) + 1):
             for tile_subset_tuple in combinations(color_tiles, r_tiles):
                 for r_jokers in range(len(jokers) + 1):
+                    if r_jokers > len(jokers):
+                        continue
                     for joker_subset_tuple in combinations(jokers, r_jokers):
                         if len(tile_subset_tuple) + len(joker_subset_tuple) < 3:
                             continue
 
                         run_candidate = list(tile_subset_tuple) + list(joker_subset_tuple)
                         if is_valid_run(run_candidate):
-                            possible_melds.add(frozenset(run_candidate))
+                            possible_melds.add(tuple(sorted(run_candidate)))
 
     return list(possible_melds)
 
 
 def pre_filter_unplayable_tiles(hand: List[Tile], table: List[List[Tile]]) -> Tuple[List[Tile], List[Tile]]:
     if not hand:
-        return set(), set()
+        return [], []
 
     pool = hand + [tile for meld in table for tile in meld]
     pool_counter = Counter(pool)
-    joker_count = pool_counter.get(JOKER, 0)
+    joker_count = sum(count for tile, count in pool_counter.items() if tile.color == 'Joker')
 
     playable_hand = []
     unplayable_hand = []
 
     for tile, count in Counter(hand).items():
-        if tile == JOKER:
-            playable_hand.extend([JOKER]*count)
+        if tile.color == 'Joker':
+            playable_hand.extend([tile]*count)
             continue
 
         is_playable = False
@@ -114,24 +116,23 @@ def find_all_valid_moves(hand: List[Tile], table: List[List[Tile]], first_only=F
     if not workspace_tiles_counter:
         return []
 
-    all_melds = generate_all_possible_melds(list(workspace_tiles_counter.keys()))
+    all_melds = generate_all_possible_melds(all_tiles_list)
 
     tile_to_melds_map = defaultdict(list)
     for meld in all_melds:
-        for tile in meld:
+        for tile in set(meld):
             tile_to_melds_map[tile].append(meld)
 
     solutions = set()
 
-    def solve(tiles_to_cover: Counter[Tile], current_layout: List[FrozenSet[Tile]]):
+    def solve(tiles_to_cover: Counter[Tile], current_layout: List[Tuple[Tile]]):
         """
         Funkcja rekurencyjna szukająca dokładnego pokrycia.
         """
         if first_only and solutions:
             return
         if not tiles_to_cover:
-            sorted_layout = tuple(tuple(sorted(list(meld))) for meld in current_layout)
-            solutions.add(tuple(sorted(sorted_layout)))
+            solutions.add(tuple(sorted(current_layout)))
             return
 
         tile_to_process = min(tiles_to_cover.keys(), key=lambda t: len(tile_to_melds_map.get(t, [1]*1000)))
@@ -199,5 +200,3 @@ def possible_moves(hand: List[Tile], table: List[List[Tile]]) -> List[Tuple[List
                     seen_tables.add(table_signature)
 
     return all_found_moves
-
-
