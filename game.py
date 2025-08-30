@@ -49,3 +49,6 @@ class GameEngine:
                 for number in range(1, 14)]
                 + [Tile(0, 'Joker')]) * 2
 
+    def __init__(self, players: int = 2):
+        self.state = GameState(players)
+
