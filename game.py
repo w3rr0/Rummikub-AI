@@ -20,7 +20,7 @@ class GameState:
         self.players = players
         self.current_player = 0
         self.done = False
-        self.winner = Optional[int] = None
+        self.winner: Optional[int] = None
 
     def clone(self):
         st = GameState(self.players)
