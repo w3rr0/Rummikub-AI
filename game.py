@@ -50,7 +50,11 @@ class GameEngine:
         hand = self.state.hands[player]
         table = self.state.table
 
-        moves = [*ps(hand, table), (table, [])]
+        moves = ps(hand, table)
+        # If there are blocks to be picked up or there are no possible moves, you do not have to put a tile
+        if not moves or self.state.stock:
+            moves.append((table, []))
+
 
         return moves
 
