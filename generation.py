@@ -85,7 +85,7 @@ def pre_filter_unplayable_tiles(hand: List[Tile], table: List[List[Tile]]) -> Tu
             # Kombinacja [N-1, N, N+1]
             if not is_playable:
                 needed1, needed2 = Tile(num - 1, color), Tile(num + 1, color)
-                if (pool_counter.get(needed1, 0) + pool_counter.get(needed2, 0) + joker_count) >= 1:
+                if (pool_counter.get(needed1, 0) + pool_counter.get(needed2, 0) + joker_count) >= 2:
                     is_playable = True
 
             if not is_playable:
