@@ -1,26 +1,29 @@
 import pytest
-from game import Tile, JOKER
+from game import Tile
 from validation import is_valid_group, is_valid_meld, is_table_valid, is_valid_run
 
 # Definicje kolorów dla czytelności testów
 R = "Red"
 B = "Blue"
-G = "Green"
-O = "Orange"
+G = "Black"
+Y = "Yellow"
+
+# Definicja JOKERA
+JOKER = Tile(0, "Joker")
 
 # --- Testy dla is_valid_group ---
 
 @pytest.mark.parametrize("group, expected", [
     # Poprawne grupy
     ([Tile(7, R), Tile(7, B), Tile(7, G)], True),
-    ([Tile(1, R), Tile(1, B), Tile(1, G), Tile(1, O)], True),
+    ([Tile(1, R), Tile(1, B), Tile(1, G), Tile(1, Y)], True),
     ([Tile(5, R), Tile(5, B), JOKER], True),
     ([Tile(10, R), Tile(10, B), Tile(10, G), JOKER], True),
-    ([Tile(12, O), Tile(12, B), JOKER, JOKER], True),
+    ([Tile(12, Y), Tile(12, B), JOKER, JOKER], True),
 
     # Niepoprawne grupy
     ([Tile(7, R), Tile(7, B)], False),  # Za krótka
-    ([Tile(1, R), Tile(1, B), Tile(1, G), Tile(1, O), Tile(1, R)], False), # Za długa
+    ([Tile(1, R), Tile(1, B), Tile(1, G), Tile(1, Y), Tile(1, R)], False), # Za długa
     ([Tile(7, R), Tile(8, R), Tile(9, R)], False), # To szereg, nie grupa
     ([Tile(7, R), Tile(7, B), Tile(8, G)], False), # Różne numery
     ([Tile(7, R), Tile(7, R), Tile(7, B)], False), # Zduplikowany kolor
@@ -56,7 +59,7 @@ def test_is_valid_meld(meld, expected):
     (
         [
             [Tile(7, R), Tile(7, B), Tile(7, G)],
-            [Tile(1, O), Tile(2, O), Tile(3, O), Tile(4, O)]
+            [Tile(1, Y), Tile(2, Y), Tile(3, Y), Tile(4, Y)]
         ],
         True
     ),
@@ -78,7 +81,7 @@ def test_is_valid_meld(meld, expected):
     (
         [
             [Tile(7, R), Tile(7, B), Tile(7, G)], # Poprawny
-            [Tile(1, O), Tile(3, O), Tile(4, O)]  # Niepoprawny
+            [Tile(1, Y), Tile(3, Y), Tile(4, Y)]  # Niepoprawny
         ],
         False
     ),
