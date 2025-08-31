@@ -62,12 +62,25 @@ if __name__ == "__main__":
 
     if args.mode == "test":
         print(f"=== Test {args.total_games} {'game' if args.total_games == 1 else 'games'} ===")
-        n_round, winner, moves_played, blocks_played = play_game(env, model=model, render=True)
-        print("\n===== Game finished =====")
-        print(f"Rounds played: {n_round}")
+        nr, w, mp, bp, = 0, [0] * args.players, [0] * args.players, [0] * args.players
+        for j in range(args.total_games):
+            n_round, winner, moves_played, blocks_played = play_game(env, model=model, render=True)
+            nr += n_round
+            w[winner] += 1
+            for player in range(args.players):
+                mp[player] += moves_played[player]
+                bp[player] += blocks_played[player]
+
+            print(f"\n===== Game {j+1} finished =====")
+            print(f"Rounds played: {n_round}")
+            for i in range(args.players):
+                print(f"Player {i} - moves: {moves_played[i]}, tiles played: {blocks_played[i]}")
+            print(f"Winner: Player {winner}")
+
+        print(f"\n===== {args.total_games + 1} games finished =====")
+        print(f"Total rounds: {nr}")
         for i in range(args.players):
-            print(f"Player {i} - moves: {moves_played[i]}, blocks played: {blocks_played[i]}")
-        print(f"Winner: Player {winner}")
+            print(f"Player {i} - Total wins: {w[i]}, Total moves: {mp[i]}, Total tiles placed: {bp[i]}")
 
     elif args.mode == "train":
         print(f"=== Training {args.total_games} {'games' if args.total_games != 1 else 'game'} ===")
