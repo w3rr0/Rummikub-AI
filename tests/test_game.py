@@ -28,3 +28,27 @@ def test_enumerate_moves_basic():
     assert any(used == [] for _, used in moves)  # PASS zawsze obecny
     for new_table, used in moves:
         assert all(tile in engine.state.hands[player] for tile in used)
+
+
+# --- Test for apply_move and play ---
+
+def test_apply_move_pass_and_play():
+    engine = GameEngine(players=2)
+    player = engine.state.current_player
+
+    # PASS
+    initial_hand_len = len(engine.state.hands[player])
+    initial_stock_len = len(engine.state.stock)
+    engine.apply_move(player, (engine.state.table, []))
+    assert len(engine.state.hands[player]) == initial_hand_len + 1
+    assert len(engine.state.stock) == initial_stock_len - 1
+    assert engine.state.current_player == 1
+
+    # Zwykły ruch
+    engine.state.hands[1] = [Tile(1, "Red"), Tile(2, "Red"), Tile(3, "Red")]
+    move = ([ [Tile(1, "Red"), Tile(2, "Red"), Tile(3, "Red")] ], [Tile(1,"Red"), Tile(2,"Red"), Tile(3,"Red")])
+    engine.apply_move(1, move)
+    assert engine.state.table == [[Tile(1,"Red"), Tile(2,"Red"), Tile(3,"Red")]]
+    assert engine.state.hands[1] == []
+    assert engine.state.done
+    assert engine.state.winner == 1
