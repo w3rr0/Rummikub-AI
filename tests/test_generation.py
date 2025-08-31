@@ -68,3 +68,37 @@ def test_pre_filter_unplayable_tiles(hand, table, playable, unplayable):
     p, u = pre_filter_unplayable_tiles(hand, table)
     assert sorted(p) == sorted(playable)
     assert sorted(u) == sorted(unplayable)
+
+
+# --- Tests for find_all_valid_moves ---
+
+@pytest.mark.parametrize("hand, table, first_only, expected_count", [
+    # --- przypadek 1: pusty stan ---
+    ([], [], False, 0),
+
+    # --- przypadek 2: prosty run 1 ---
+    ([Tile(1, B)], [[Tile(2, B), Tile(3, B)]], False, 1),
+
+    # --- przypadek 3: prosty group 1 ---
+    ([Tile(1, R)], [[Tile(1, B), Tile(1, Y)]], False, 1),
+
+    # --- przypadek 4: Nie ma żadnej możliwości ---
+    ([Tile(1, R), Tile(2, R)], [[Tile(2, B), Tile(3, B)]], False, 0),
+
+    # --- przypadek 5: first_only=True ---
+    ([Tile(1, R), Tile(2, R)], [[JOKER, Tile(3, R)]], True, 1),
+
+    # --- przypadek 6: Joker użyty w run ---
+    ([JOKER], [[Tile(2, B), Tile(3, B)]], False, 1),
+])
+def test_find_all_valid_moves(hand, table, first_only, expected_count):
+    """Tests finding all possible solutions for a given hand and table"""
+    moves = find_all_valid_moves(hand, table, first_only)
+    assert isinstance(moves, list)
+    assert all(isinstance(layout, list) and all(isinstance(m, list) for m in layout) for layout in moves)
+    assert len(moves) == expected_count
+
+    # All moves must use tiles from hand
+    for move in moves:
+        used_from_hand = sum((tile in hand) for meld in move for tile in meld)
+        assert used_from_hand > 0 or (hand == [] and table == [])
