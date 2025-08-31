@@ -16,3 +16,15 @@ def test_initial_state():
     assert state.current_player == 0
     assert not state.done
     assert state.winner is None
+
+
+# --- Test for enumerate_moves ---
+
+def test_enumerate_moves_basic():
+    engine = GameEngine(players=2)
+    player = engine.state.current_player
+    moves = engine.enumerate_moves(player)
+
+    assert any(used == [] for _, used in moves)  # PASS zawsze obecny
+    for new_table, used in moves:
+        assert all(tile in engine.state.hands[player] for tile in used)
