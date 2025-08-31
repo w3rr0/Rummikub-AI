@@ -102,3 +102,39 @@ def test_find_all_valid_moves(hand, table, first_only, expected_count):
     for move in moves:
         used_from_hand = sum((tile in hand) for meld in move for tile in meld)
         assert used_from_hand > 0 or (hand == [] and table == [])
+
+
+# --- Tests for possible_moves ---
+
+@pytest.mark.parametrize("hand, table, expected_count", [
+    # --- przypadek 1: pusty stan ---
+    ([], [], 0),
+
+    # --- przypadek 2: Joker w ręce ---
+    ([JOKER], [[Tile(2, B), Tile(3, B)]], 1),
+
+    # --- przypadek 3: prosty run 1 ---
+    ([Tile(1, B)], [[Tile(2, B), Tile(3, B)]], 1),
+
+    # --- przypadek 4: prosty group 1 ---
+    ([Tile(1, R)], [[Tile(1, B), Tile(1, Y)]], 1),
+
+    # --- przypadek 5: kilka możliwości dla kilku kafli ---
+    ([Tile(1, R), Tile(2, R)], [[JOKER, Tile(3, R)]], 3),
+])
+def test_possible_moves(hand, table, expected_count):
+    moves = possible_moves(hand, table)
+    assert isinstance(moves, list)
+    assert len(moves) == expected_count
+
+    for new_table, used_tiles in moves:
+        # nowa tabela jest listą list kafli
+        assert all(isinstance(meld, list) for meld in new_table)
+        assert all(all(isinstance(t, Tile) for t in meld) for meld in new_table)
+        # użyte kafle pochodzą z ręki
+        assert all(tile in hand for tile in used_tiles)
+        # nie zwracamy pustego ruchu
+        assert len(used_tiles) > 0
+        # table_signature unikalne
+        table_signature = frozenset(frozenset(meld) for meld in new_table)
+        assert table_signature == frozenset(frozenset(meld) for meld in new_table)
