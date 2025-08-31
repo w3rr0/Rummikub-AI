@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import List, Literal, Optional
 import random
 
+from generation import possible_moves as ps
+
 TileColor = Literal['Red', 'Blue', 'Yellow', 'Black', 'Joker']
 
 # Dataclass dla zwięzłości i czytelności
@@ -51,4 +53,12 @@ class GameEngine:
 
     def __init__(self, players: int = 2):
         self.state = GameState(players)
+
+    def enumerate_moves(self, player: int):
+        hand = self.state.hands[player]
+        table = self.state.table
+
+        moves = [*ps(hand, table), (table, [])]
+
+        return moves
 
