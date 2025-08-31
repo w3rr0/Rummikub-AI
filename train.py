@@ -13,16 +13,14 @@ if __name__ == "__main__":
     env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range)
     obs, _ = env.reset()
     done = False
-    env.render()
 
-    n_round = 1
-    print(f"--- Round {n_round} ---")
-
+    n_round = 0
     while not done:
+        if env.engine.state.current_player == 0:
+            n_round += 1
+            print(f"\n------ Round {n_round} ------")
+            env.render()
+
         action = env.action_space.sample()
         obs, reward, terminated, truncated, info = env.step(action)
-        env.render()
         done = terminated or truncated
-        if env.engine.state.current_player == env.players:
-            n_round += 1
-            print(f"------ Round {n_round} ------")
