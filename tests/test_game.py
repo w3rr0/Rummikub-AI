@@ -52,3 +52,13 @@ def test_apply_move_pass_and_play():
     assert engine.state.hands[1] == []
     assert engine.state.done
     assert engine.state.winner == 1
+
+
+# --- Test for clone ---
+
+def test_clone_independence():
+    engine = GameEngine(players=2)
+    clone_state = engine.state.clone()
+    assert clone_state.hands == engine.state.hands
+    clone_state.hands[0].pop()
+    assert len(clone_state.hands[0]) != len(engine.state.hands[0])
