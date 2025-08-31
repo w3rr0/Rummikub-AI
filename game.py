@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Tuple
 import random
 
 from generation import possible_moves as ps
@@ -62,3 +62,24 @@ class GameEngine:
 
         return moves
 
+    def apply_move(self, player: int, move: Tuple[List[List[Tile]], List[Tile]]):
+        new_table, used_tiles = move
+
+        # Draw a card
+        if len(used_tiles) == 0 and new_table == self.state.table:
+            if self.state.stock:
+                self.state.hands[player].append(self.state.stock.pop())
+        else:
+            for tile in used_tiles:
+                if tile not in self.state.hands[player]:
+                    raise ValueError(f"Player does not have the required tile: {tile}")
+                self.state.hands[player].remove(tile)
+
+            self.state.table = [meld.copy() for meld in new_table]
+
+            if len(self.state.hands[player]) == 0:
+                self.state.done = True
+                self.state.winner = player
+
+        # Player change
+        self.state.current_player = (self.state.current_player + 1) % self.state.players
