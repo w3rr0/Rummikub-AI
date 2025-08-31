@@ -23,11 +23,12 @@ class RummikubEnv(gym.Env):
         self.max_actions = 100
         self.action_space = spaces.Discrete(self.max_actions)
 
+        self.blocks_start = blocks_start
         self.blocks_range = blocks_range
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.engine = GameEngine(self.players)
+        self.engine = GameEngine(self.players, self.blocks_start, self.blocks_range)
         obs = self._get_obs()
         return obs, {}
 
