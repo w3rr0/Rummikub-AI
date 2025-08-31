@@ -6,13 +6,18 @@ from tile import Tile
 
 
 class GameState:
-    def __init__(self, players: int):
+    def __init__(self, players: int, blocks: int = 14, r: int = 14):
+        self.tile_pull = ([Tile(number, color)
+                           for color in ['Red', 'Blue', 'Yellow', 'Black']
+                           for number in range(1, r+1)]
+                          + [Tile(0, 'Joker')]) * 2
+
         # Draw pile
-        self.stock = GameEngine.TilePull.copy()
+        self.stock = self.tile_pull.copy()
         random.shuffle(self.stock)
 
         # Deal tiles
-        self.hands = [[self.stock.pop() for _ in range(14)] for _ in range(players)]
+        self.hands = [[self.stock.pop() for _ in range(blocks)] for _ in range(players)]
 
         # Init table
         self.table: List[List[Tile]] = []
@@ -34,13 +39,12 @@ class GameState:
 
 
 class GameEngine:
-    TilePull = ([Tile(number, color)
-                for color in ['Red', 'Blue', 'Yellow', 'Black']
-                for number in range(1, 14)]
-                + [Tile(0, 'Joker')]) * 2
-
-    def __init__(self, players: int = 2):
-        self.state = GameState(players)
+    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 14):
+        self.state = GameState(players, blocks_start, blocks_range)
+        self.tile_pull = ([Tile(number, color)
+                     for color in ['Red', 'Blue', 'Yellow', 'Black']
+                     for number in range(1, 14)]
+                    + [Tile(0, 'Joker')]) * 2
 
     def enumerate_moves(self, player: int):
         hand = self.state.hands[player]
