@@ -1,26 +1,29 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from game import GameEngine, GameState
+from game import GameEngine
 
 class RummikubEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 14):
+    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 13):
         super().__init__()
         self.players = players
         self.engine = GameEngine(players, blocks_start, blocks_range)
 
         # Observation = ręka + stół
-        # uproszczenie: wektor długości 106 (liczba każdego rodzaju kafelka)
+        # uproszczenie: wektor długości liczby wszystkich kafelków
+        self.number_of_tiles = blocks_range * 4 * 2 + 2
         self.observation_space = spaces.Box(
-            low=0, high=2, shape=(106,), dtype=np.int32
+            low=0, high=2, shape=(self.number_of_tiles,), dtype=np.int32
         )
 
         # Action = wybór indeksu ruchu z enumerate_moves
         # Maksymalna liczba ruchów to np. 100 (resztę potraktujemy jako "no-op")
         self.max_actions = 100
         self.action_space = spaces.Discrete(self.max_actions)
+
+        self.blocks_range = blocks_range
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -62,14 +65,12 @@ class RummikubEnv(gym.Env):
         all_tiles = self.engine.state.hands[self.engine.state.current_player] + [
             tile for meld in self.engine.state.table for tile in meld
         ]
-        vec = np.zeros(106, dtype=np.int32)
+        vec = np.zeros(self.number_of_tiles, dtype=np.int32)
 
-        # indeks = kolor*13 + (numer-1), jokery na końcu
+        # indeks = kolor * liczba kafelków + (numer-1), jokery na końcu
         def tile_to_idx(tile):
-            if tile.color == "Joker":
-                return 104 + tile.number  # dwa jokery
-            color_idx = {"Red": 0, "Blue": 1, "Yellow": 2, "Black": 3}[tile.color]
-            return color_idx * 13 + (tile.number - 1)
+            color_idx = {"Red": 0, "Blue": 1, "Yellow": 2, "Black": 3, "Joker": 4}[tile.color]
+            return color_idx * self.blocks_range + (tile.number - 1)
 
         for t in all_tiles:
             vec[tile_to_idx(t)] += 1
