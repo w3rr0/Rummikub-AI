@@ -1,4 +1,5 @@
-import pytest
+import random
+
 from tile import Tile
 from game import GameEngine
 
@@ -11,7 +12,7 @@ def test_initial_state():
 
     assert len(state.hands) == 2
     assert all(len(hand) == 14 for hand in state.hands)
-    assert len(state.stock) == len(GameEngine.TilePull) - 14 * 2
+    assert len(state.stock) == len(engine.state.tile_pull) - 14 * 2
     assert state.table == []
     assert state.current_player == 0
     assert not state.done
@@ -62,3 +63,16 @@ def test_clone_independence():
     assert clone_state.hands == engine.state.hands
     clone_state.hands[0].pop()
     assert len(clone_state.hands[0]) != len(engine.state.hands[0])
+
+
+# --- Test for full game integration ---
+
+def test_full_game_random_mini():
+    engine = GameEngine(players=2, blocks_start=6, blocks_range=5)
+    while not engine.state.done:
+        player = engine.state.current_player
+        moves = engine.enumerate_moves(player)
+        move = random.choice(moves)
+        engine.apply_move(player, move)
+    assert engine.state.done
+    assert 0 <= engine.state.winner < engine.state.players
