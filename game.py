@@ -10,7 +10,7 @@ class GameState:
         self.tile_pull = ([Tile(number, color)
                            for color in ['Red', 'Blue', 'Yellow', 'Black']
                            for number in range(1, r+1)]
-                          + [Tile(0, 'Joker')]) * 2
+                          ) * 2 + [Tile(1, 'Joker'), Tile(2, 'Joker')]
 
         # Draw pile
         self.stock = self.tile_pull.copy()
