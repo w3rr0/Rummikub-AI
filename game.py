@@ -6,7 +6,7 @@ from tile import Tile
 
 
 class GameState:
-    def __init__(self, players: int, blocks: int = 14, r: int = 14):
+    def __init__(self, players: int, blocks: int = 14, r: int = 13):
         self.tile_pull = ([Tile(number, color)
                            for color in ['Red', 'Blue', 'Yellow', 'Black']
                            for number in range(1, r+1)]
@@ -39,7 +39,7 @@ class GameState:
 
 
 class GameEngine:
-    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 14):
+    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 13):
         self.state = GameState(players, blocks_start, blocks_range)
         self.tile_pull = ([Tile(number, color)
                      for color in ['Red', 'Blue', 'Yellow', 'Black']
