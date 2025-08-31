@@ -2,7 +2,7 @@ from typing import List, Tuple
 from collections import defaultdict, Counter
 from itertools import combinations
 
-from game import Tile
+from tile import Tile
 from validation import is_valid_group, is_valid_run
 
 

@@ -1,20 +1,8 @@
-from dataclasses import dataclass
-from typing import List, Literal, Optional, Tuple
+from typing import List, Optional, Tuple
 import random
 
 from generation import possible_moves as ps
-
-TileColor = Literal['Red', 'Blue', 'Yellow', 'Black', 'Joker']
-
-# Dataclass dla zwięzłości i czytelności
-@dataclass(frozen=True, order=True)
-class Tile:
-    number: int
-    color: TileColor
-
-    def __repr__(self):
-        # Ładniejsza reprezentacja do drukowania
-        return f"{self.color[0]}{self.number}"
+from tile import Tile
 
 
 class GameState:

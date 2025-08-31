@@ -1,5 +1,5 @@
 import pytest
-from game import Tile
+from tile import Tile
 from validation import is_valid_group, is_valid_meld, is_table_valid, is_valid_run
 
 # Definicje kolorów dla czytelności testów
