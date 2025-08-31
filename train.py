@@ -83,11 +83,11 @@ if __name__ == "__main__":
             print(f"Player {i} - Total wins: {w[i]}, Total moves: {mp[i]}, Total tiles placed: {bp[i]}")
 
     elif args.mode == "train":
-        print(f"=== Training {args.total_games} {'games' if args.total_games != 1 else 'game'} ===")
+        print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} ===")
         if not model:
             model = PPO("MlpPolicy", env, verbose=1)
 
-        total_timesteps = args.total_games * 50
+        total_timesteps = args.total_games * args.players * args.blocks_range**2
         model.learn(total_timesteps=total_timesteps)
 
         model.save(args.save_path)
