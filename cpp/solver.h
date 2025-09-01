@@ -13,6 +13,18 @@ find_all_valid_moves_cpp(
     bool first_only
 );
 
+std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>>
+possible_moves_cpp(
+    const std::vector<Tile>& hand,
+    const std::vector<std::vector<Tile>>& table
+);
+
+std::pair<std::vector<Tile>, std::vector<Tile>>
+pre_filter_unplayable_tiles_cpp(
+    const std::vector<Tile>& hand,
+    const std::vector<std::vector<Tile>>& table
+);
+
 
 std::vector<std::vector<Tile>> get_combinations(const std::vector<Tile>& tiles, int r);
 

@@ -111,7 +111,6 @@ find_all_valid_moves_cpp(
     const std::vector<std::vector<Tile>>& table,
     bool first_only
 ) {
-    // 1. Przygotowanie danych
     auto initial_table_canonical = canonical_layout(table);
 
     std::unordered_map<Tile, int> workspace_tiles_counter;
@@ -147,7 +146,6 @@ find_all_valid_moves_cpp(
 
     std::set<std::vector<std::vector<Tile>>> solutions;
 
-    // 2. Rekurencyjne rozwiązywanie
     std::function<void(std::unordered_map<Tile, int>, std::vector<std::vector<Tile>>)> solve_recursive;
     solve_recursive = [&](
         std::unordered_map<Tile, int> tiles_to_cover,
@@ -237,4 +235,161 @@ find_all_valid_moves_cpp(
     }
 
     return final_moves;
+}
+
+std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>>
+possible_moves_cpp(
+    const std::vector<Tile>& hand,
+    const std::vector<std::vector<Tile>>& table
+) {
+    auto filtered_hands = pre_filter_unplayable_tiles_cpp(hand, table);
+    const auto& playable_hand = filtered_hands.first;
+
+    if (playable_hand.empty()) {
+        return {};
+    }
+
+    std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>> all_found_moves;
+    std::set<std::vector<std::vector<Tile>>> seen_tables;
+
+    for (size_t r = 1; r <= playable_hand.size(); ++r) {
+        std::vector<std::vector<Tile>> combinations_of_hand = get_combinations(playable_hand, r);
+
+        for (const auto& combo : combinations_of_hand) {
+            std::vector<Tile> used_hand_tiles = combo;
+
+            std::vector<std::vector<std::vector<Tile>>> solution_for_combo =
+                find_all_valid_moves_cpp(used_hand_tiles, table, true);
+
+            if (!solution_for_combo.empty()) {
+                std::vector<std::vector<Tile>> solution = solution_for_combo[0];
+
+                std::vector<std::vector<Tile>> sorted_solution = solution;
+                for(auto& meld : sorted_solution) {
+                    std::sort(meld.begin(), meld.end());
+                }
+                std::sort(sorted_solution.begin(), sorted_solution.end());
+
+                if (seen_tables.find(sorted_solution) == seen_tables.end()) {
+                    all_found_moves.emplace_back(solution, used_hand_tiles);
+                    seen_tables.insert(sorted_solution);
+                }
+            }
+        }
+    }
+
+    return all_found_moves;
+}
+
+
+std::pair<std::vector<Tile>, std::vector<Tile>>
+pre_filter_unplayable_tiles_cpp(
+    const std::vector<Tile>& hand,
+    const std::vector<std::vector<Tile>>& table
+) {
+    if (hand.empty()) {
+        return {std::vector<Tile>(), std::vector<Tile>()};
+    }
+
+    std::unordered_map<Tile, int> pool_counter;
+    int joker_count = 0;
+
+    for (const auto& tile : hand) {
+        if (tile.color == TileColor::Joker) {
+            joker_count++;
+        } else {
+            pool_counter[tile]++;
+        }
+    }
+    for (const auto& meld : table) {
+        for (const auto& tile : meld) {
+            if (tile.color == TileColor::Joker) {
+                joker_count++;
+            } else {
+                pool_counter[tile]++;
+            }
+        }
+    }
+
+    std::vector<Tile> playable_hand;
+    std::vector<Tile> unplayable_hand;
+
+    std::unordered_map<Tile, int> hand_counter;
+    for (const auto& tile : hand) {
+        hand_counter[tile]++;
+    }
+
+    for (const auto& pair : hand_counter) {
+        const auto& tile = pair.first;
+        const int count = pair.second;
+
+        if (tile.color == TileColor::Joker) {
+            for (int i = 0; i < count; ++i) {
+                playable_hand.push_back(tile);
+            }
+            continue;
+        }
+
+        bool is_playable = false;
+
+        pool_counter[tile]--;
+
+        int same_number_partners = 0;
+        std::vector<TileColor> colors_to_check = {TileColor::Red, TileColor::Blue, TileColor::Yellow, TileColor::Black};
+
+        for (const auto& color : colors_to_check) {
+            if(color != tile.color) {
+                same_number_partners += pool_counter.count(Tile(tile.number, color)) ? pool_counter.at(Tile(tile.number, color)) : 0;
+            }
+        }
+
+        if ((same_number_partners + joker_count) >= 2) {
+            is_playable = true;
+        }
+
+        if (!is_playable) {
+
+            int needed1_count;
+            int needed2_count;
+
+            // Kombinacja [N-2, N-1, N]
+            needed1_count = pool_counter.count(Tile(tile.number - 1, tile.color)) ? pool_counter.at(Tile(tile.number - 1, tile.color)) : 0;
+            needed2_count = pool_counter.count(Tile(tile.number - 2, tile.color)) ? pool_counter.at(Tile(tile.number - 2, tile.color)) : 0;
+            if ((needed1_count + needed2_count + joker_count) >= 2) {
+                is_playable = true;
+            }
+
+            // Kombinacja [N-1, N, N+1]
+            if (!is_playable) {
+                needed1_count = pool_counter.count(Tile(tile.number - 1, tile.color)) ? pool_counter.at(Tile(tile.number - 1, tile.color)) : 0;
+                needed2_count = pool_counter.count(Tile(tile.number + 1, tile.color)) ? pool_counter.at(Tile(tile.number + 1, tile.color)) : 0;
+                if ((needed1_count + needed2_count + joker_count) >= 2) {
+                    is_playable = true;
+                }
+            }
+
+            // Kombinacja [N, N+1, N+2]
+            if (!is_playable) {
+                needed1_count = pool_counter.count(Tile(tile.number + 1, tile.color)) ? pool_counter.at(Tile(tile.number + 1, tile.color)) : 0;
+                needed2_count = pool_counter.count(Tile(tile.number + 2, tile.color)) ? pool_counter.at(Tile(tile.number + 2, tile.color)) : 0;
+                if ((needed1_count + needed2_count + joker_count) >= 2) {
+                    is_playable = true;
+                }
+            }
+        }
+
+        pool_counter[tile]++;
+
+        if (is_playable) {
+            for (int i = 0; i < count; ++i) {
+                playable_hand.push_back(tile);
+            }
+        } else {
+            for (int i = 0; i < count; ++i) {
+                unplayable_hand.push_back(tile);
+            }
+        }
+    }
+
+    return {playable_hand, unplayable_hand};
 }

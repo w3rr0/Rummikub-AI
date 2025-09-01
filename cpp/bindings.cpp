@@ -43,4 +43,16 @@ PYBIND11_MODULE(rummikub_solver, m) {
         py::arg("hand"),
         py::arg("table"),
         py::arg("first_only") = false);
+
+    // Bindowanie nowej funkcji
+    m.def("pre_filter_unplayable_tiles", &pre_filter_unplayable_tiles_cpp,
+        "Filters out tiles from hand that cannot be part of any meld with current table and hand.",
+        py::arg("hand"),
+        py::arg("table"));
+
+    // Zmodyfikowane bindowanie
+    m.def("possible_moves", &possible_moves_cpp,
+        "Returns all possible new table setups with used tiles",
+        py::arg("hand"),
+        py::arg("table"));
 }
