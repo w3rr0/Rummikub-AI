@@ -1,15 +1,18 @@
 #ifndef TILE_H
 #define TILE_H
 
-#include <functional> // Dla std::hash
+#include <functional>
 
-// Odpowiednik TileColor z Pythona
+
 enum class TileColor { Red, Blue, Yellow, Black, Joker };
 
-// Struktura Tile
+
 struct Tile {
     int number;
     TileColor color;
+
+    Tile() = default;
+    Tile(int num, TileColor c) : number(num), color(c) {}
 
     bool operator==(const Tile& other) const {
         return number == other.number && color == other.color;
