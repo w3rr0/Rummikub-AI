@@ -1,7 +1,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
+#include <pybind11/stl_bind.h>
+
 #include "solver.h"
+#include "GameEngine.h"
 
 namespace py = pybind11;
 
@@ -55,4 +58,21 @@ PYBIND11_MODULE(rummikub_solver, m) {
         "Returns all possible new table setups with used tiles",
         py::arg("hand"),
         py::arg("table"));
+
+    py::class_<GameState>(m, "GameState")
+        .def(py::init<int, int, int>(), py::arg("players"), py::arg("blocks") = 14, py::arg("r") = 13)
+        .def_readwrite("stock", &GameState::stock)
+        .def_readwrite("hands", &GameState::hands)
+        .def_readwrite("table", &GameState::table)
+        .def_readwrite("players", &GameState::players)
+        .def_readwrite("current_player", &GameState::current_player)
+        .def_readwrite("done", &GameState::done)
+        .def_readwrite("winner", &GameState::winner)
+        .def("clone", &GameState::clone);
+
+    py::class_<GameEngine>(m, "GameEngine")
+        .def(py::init<int, int, int>(), py::arg("players") = 2, py::arg("blocks_start") = 14, py::arg("blocks_range") = 13)
+        .def_readwrite("state", &GameEngine::state)
+        .def("enumerate_moves", &GameEngine::enumerate_moves, py::arg("player"))
+        .def("apply_move", &GameEngine::apply_move, py::arg("player"), py::arg("move"));
 }

@@ -11,7 +11,8 @@ ext_modules = [
         [
             'cpp/validation.cpp',
             'cpp/solver.cpp',
-            'cpp/bindings.cpp'
+            'cpp/bindings.cpp',
+            'cpp/GameEngine.cpp'
         ],
         include_dirs=[
             'cpp',
