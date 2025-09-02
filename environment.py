@@ -1,25 +1,45 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from game import GameEngine
+from typing import Literal
+
+from game import GameEngine as GEP
+from rummikub_solver import GameEngine as GEC
+from rummikub_solver import TileColor as TCC
+
+versions = Literal["cpp", "python"]
+class TCP:
+    Red = "Red"
+    Blue = "Blue"
+    Yellow = "Yellow"
+    Black = "Black"
+    Joker = "Joker"
+
+# Default game engine
+GameEngine = GEC
+Color = TCC
 
 class RummikubEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 13):
+    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 13, version: versions = "cpp"):
         super().__init__()
+        global GameEngine, Color
+        match(version):
+            case "cpp":
+                GameEngine = GEC
+                Color = TCC
+            case "python":
+                GameEngine = GEP
+                Color = TCP
         self.players = players
         self.engine = GameEngine(players, blocks_start, blocks_range)
 
-        # Observation = ręka + stół
-        # uproszczenie: wektor długości liczby wszystkich kafelków
         self.number_of_tiles = blocks_range * 4 * 2 + 2
         self.observation_space = spaces.Box(
             low=0, high=2, shape=(self.number_of_tiles,), dtype=np.int32
         )
 
-        # Action = wybór indeksu ruchu z enumerate_moves
-        # Maksymalna liczba ruchów to np. 100 (resztę potraktujemy jako "no-op")
         self.max_actions = 100
         self.action_space = spaces.Discrete(self.max_actions)
 
@@ -28,6 +48,7 @@ class RummikubEnv(gym.Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
+        global GameEngine
         self.engine = GameEngine(self.players, self.blocks_start, self.blocks_range)
         obs = self._get_obs()
         return obs, {}
@@ -36,7 +57,6 @@ class RummikubEnv(gym.Env):
         player = self.engine.state.current_player
         moves = self.engine.enumerate_moves(player)
 
-        # jeśli akcja > dostępne ruchy → PASS
         if action >= len(moves):
             move = (self.engine.state.table, [])
         else:
@@ -47,7 +67,7 @@ class RummikubEnv(gym.Env):
         obs = self._get_obs()
         reward = self._get_reward(player, move)
         terminated = self.engine.state.done
-        truncated = False  # brak limitu ruchów
+        truncated = False   # Limit ruchów (brak)
         info = {}
 
         return obs, reward, terminated, truncated, info
@@ -70,7 +90,7 @@ class RummikubEnv(gym.Env):
 
         # indeks = kolor * liczba kafelków + (numer-1), jokery na końcu
         def tile_to_idx(tile):
-            color_idx = {"Red": 0, "Blue": 1, "Yellow": 2, "Black": 3, "Joker": 4}[tile.color]
+            color_idx = {Color.Red: 0, Color.Blue: 1, Color.Yellow: 2, Color.Black: 3, Color.Joker: 4}[tile.color]
             return color_idx * self.blocks_range + (tile.number - 1)
 
         for t in all_tiles:
