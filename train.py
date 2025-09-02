@@ -79,7 +79,7 @@ if __name__ == "__main__":
                 print(f"Player {i} - moves: {moves_played[i]}, tiles played: {blocks_played[i]}")
             print(f"Winner: Player {winner}")
 
-        print(f"\n===== {args.total_games + 1} games finished =====")
+        print(f"\n===== {args.total_games} games finished =====")
         print(f"Total rounds: {nr}")
         for i in range(args.players):
             print(f"Player {i} - Total wins: {w[i]}, Total moves: {mp[i]}, Total tiles placed: {bp[i]}")
