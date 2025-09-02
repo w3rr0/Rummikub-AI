@@ -4,6 +4,7 @@ from stable_baselines3 import PPO
 from environment import RummikubEnv
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument("--players", type=int, default=2)
 parser.add_argument("--blocks_start", type=int, default=14)
 parser.add_argument("--blocks_range", type=int, default=13)
@@ -11,6 +12,7 @@ parser.add_argument("--mode", type=str, default="test", choices=["test", "train"
 parser.add_argument("--total_games", type=int, default=1)
 parser.add_argument("--model_path", type=str, default=None)
 parser.add_argument("--save_path", type=str, default="models/ppo_rummikub")
+parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cpp")
 
 args = parser.parse_args()
 
@@ -53,7 +55,7 @@ def play_game(env, model=None, render=False):
 
 
 if __name__ == "__main__":
-    env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range)
+    env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
 
     model = None
     if args.model_path:
