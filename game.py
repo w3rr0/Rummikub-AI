@@ -62,7 +62,7 @@ class GameEngine:
         new_table, used_tiles = move
 
         # Draw a card
-        if len(used_tiles) == 0 and new_table == self.state.table:
+        if len(used_tiles) == 0:
             if self.state.stock:
                 self.state.hands[player].append(self.state.stock.pop())
         else:
