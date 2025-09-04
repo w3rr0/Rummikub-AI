@@ -25,7 +25,7 @@ PYBIND11_MODULE(rummikub_solver, m) {
         .def(py::init<int, TileColor>())
         .def_readwrite("number", &Tile::number)
         .def_readwrite("color", &Tile::color)
-        .def("__repr__", [](const Tile &t) { // ZMIANA: Usunięto `[&]`
+        .def("__repr__", [](const Tile &t) {
             if (t.color == TileColor::Joker) return std::string("Joker");
             std::string color_str;
             switch(t.color) {
@@ -37,7 +37,10 @@ PYBIND11_MODULE(rummikub_solver, m) {
             }
             return color_str + std::to_string(t.number);
         })
-        .def(py::self < py::self);
+        .def(py::self < py::self)
+        .def("__eq__", [](const Tile &a, const Tile &b) { return a == b; })
+        .def("__hash__", [](const Tile &t) { return std::hash<Tile>()(t); })
+        ;
 
 
     // Bindowanie głównej funkcji
@@ -68,11 +71,13 @@ PYBIND11_MODULE(rummikub_solver, m) {
         .def_readwrite("current_player", &GameState::current_player)
         .def_readwrite("done", &GameState::done)
         .def_readwrite("winner", &GameState::winner)
+        .def_readwrite("player_putted", &GameState::player_putted)
         .def("clone", &GameState::clone);
 
     py::class_<GameEngine>(m, "GameEngine")
         .def(py::init<int, int, int>(), py::arg("players") = 2, py::arg("blocks_start") = 14, py::arg("blocks_range") = 13)
         .def_readwrite("state", &GameEngine::state)
         .def("enumerate_moves", &GameEngine::enumerate_moves, py::arg("player"))
-        .def("apply_move", &GameEngine::apply_move, py::arg("player"), py::arg("move"));
+        .def("apply_move", &GameEngine::apply_move, py::arg("player"), py::arg("move"))
+        .def("next_player", &GameEngine::next_player, py::arg("placed"));
 }
