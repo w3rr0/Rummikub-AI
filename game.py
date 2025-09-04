@@ -10,7 +10,7 @@ class GameState:
         self.tile_pull = ([Tile(number, color)
                            for color in ['Red', 'Blue', 'Yellow', 'Black']
                            for number in range(1, r+1)]
-                          ) * 2 + [Tile(1, 'Joker'), Tile(2, 'Joker')]
+                          ) * 2 + [Tile(1, 'Joker'), Tile(1, 'Joker')]
 
         # Draw pile
         self.stock = self.tile_pull.copy()
@@ -22,6 +22,7 @@ class GameState:
         # Init table
         self.table: List[List[Tile]] = []
 
+        self.player_putted = False
         self.players = players
         self.current_player = 0
         self.done = False
@@ -35,6 +36,7 @@ class GameState:
         st.current_player = self.current_player
         st.done = self.done
         st.winner = self.winner
+        st.player_putted = self.player_putted
         return st
 
 
@@ -44,27 +46,22 @@ class GameEngine:
         self.tile_pull = ([Tile(number, color)
                      for color in ['Red', 'Blue', 'Yellow', 'Black']
                      for number in range(1, 14)]
-                    + [Tile(0, 'Joker')]) * 2
+                    + [Tile(1, 'Joker')]) * 2
 
     def enumerate_moves(self, player: int):
         hand = self.state.hands[player]
         table = self.state.table
 
         moves = ps(hand, table)
-        # If there are blocks to be picked up or there are no possible moves, you do not have to put a tile
-        if not moves or self.state.stock:
-            moves.append((table, []))
-
 
         return moves
 
-    def apply_move(self, player: int, move: Tuple[List[List[Tile]], List[Tile]]):
+    def apply_move(self, player: int, move: Tuple[List[List[Tile]], List[Tile]]) -> None:
         new_table, used_tiles = move
 
         # Draw a card
         if len(used_tiles) == 0:
-            if self.state.stock:
-                self.state.hands[player].append(self.state.stock.pop())
+            raise ValueError("Incorrect move")
         else:
             for tile in used_tiles:
                 if tile not in self.state.hands[player]:
@@ -76,6 +73,18 @@ class GameEngine:
             if len(self.state.hands[player]) == 0:
                 self.state.done = True
                 self.state.winner = player
+
+
+    def next_player(self, placed: bool) -> None:
+        player = self.state.current_player
+        if not placed:
+            # Draw a tile
+            if not self.state.stock:
+                raise ValueError("Draws from an empty stock")
+            else:
+                self.state.hands[player].append(self.state.stock.pop())
+
+        self.state.player_putted = False
 
         # Player change
         self.state.current_player = (self.state.current_player + 1) % self.state.players
