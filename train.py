@@ -1,5 +1,6 @@
 import argparse
-from stable_baselines3 import PPO
+from sb3_contrib import MaskablePPO
+import numpy as np
 
 from environment import RummikubEnv
 
@@ -17,7 +18,7 @@ parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cp
 args = parser.parse_args()
 
 def play_game(env, model=None, render=False):
-    obs, _ = env.reset()
+    obs, info = env.reset()
     done = False
     n_round = 1
     moves_played = [0] * env.players
@@ -29,21 +30,27 @@ def play_game(env, model=None, render=False):
     while not done:
         player = env.engine.state.current_player
 
+        mask = info["action_mask"]
         if model:
-            action, _ = model.predict(obs, deterministic=True)
+            action, _ = model.predict(obs, action_masks=mask, deterministic=True)
         else:
-            action = env.action_space.sample()
+            valid_actions = np.where(mask)[0]
+            action = np.random.choice(valid_actions)
+
 
         obs, reward, terminated, truncated, info = env.step(action)
 
         # Statistics
-        if action < len(env.engine.enumerate_moves(player)):
-            _, used_tiles = env.engine.enumerate_moves(player)[action]
-            moves_played[player] += 1
-            tiles_played[player] += len(used_tiles)
+        if 1 < action < env.max_actions:
+            used_tiles = env.actions[action - 2]
+            #_, used_tiles = env.engine.enumerate_moves(player)[action]
+        else:
+            used_tiles = []
+        moves_played[player] += 1
+        tiles_played[player] += len(used_tiles)
 
         if render:
-            if player == env.players - 1:
+            if player == env.players - 1 and action in {0, 1}:
                 n_round += 1
                 print(f"\n------ Round {n_round} ------")
             env.render()
@@ -59,7 +66,7 @@ if __name__ == "__main__":
 
     model = None
     if args.model_path:
-        model = PPO.load(args.model_path, env=env)
+        model = MaskablePPO.load(args.model_path, env=env)
         print(f"Loaded model from {args.model_path}")
 
     if args.mode == "test":
@@ -87,7 +94,7 @@ if __name__ == "__main__":
     elif args.mode == "train":
         print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} ===")
         if not model:
-            model = PPO("MlpPolicy", env, verbose=2)
+            model = MaskablePPO("MlpPolicy", env, verbose=2)
 
         total_timesteps = args.total_games * args.players * args.blocks_range**2
         model.learn(total_timesteps=total_timesteps)
