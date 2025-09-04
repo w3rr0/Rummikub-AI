@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <random>
 #include <stdexcept>
-#include <unordered_map>
+#include <map>
 
 
 GameState::GameState(int num_players, int blocks, int r)
@@ -16,7 +16,7 @@ GameState::GameState(int num_players, int blocks, int r)
     }
     tile_pull.insert(tile_pull.end(), tile_pull.begin(), tile_pull.end());
     tile_pull.emplace_back(1, TileColor::Joker);
-    tile_pull.emplace_back(2, TileColor::Joker);
+    tile_pull.emplace_back(1, TileColor::Joker);
 
     stock = tile_pull;
 
@@ -44,6 +44,7 @@ GameState GameState::clone() const {
     new_state.current_player = this->current_player;
     new_state.done = this->done;
     new_state.winner = this->winner;
+    new_state.player_putted = this->player_putted;
     return new_state;
 }
 
@@ -59,13 +60,7 @@ GameEngine::enumerate_moves(int player) {
     const auto& hand = state.hands[player];
     const auto& table = state.table;
 
-    auto moves = possible_moves_cpp(hand, table);
-
-    if (moves.empty() || !state.stock.empty()) {
-        moves.emplace_back(table, std::vector<Tile>{});
-    }
-
-    return moves;
+    return possible_moves_cpp(hand, table);
 }
 
 void GameEngine::apply_move(int player, const std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>& move) {
@@ -76,39 +71,49 @@ void GameEngine::apply_move(int player, const std::tuple<std::vector<std::vector
     const auto& new_table = std::get<0>(move);
     const auto& used_tiles = std::get<1>(move);
 
-    // Przypadek dobrania karty
     if (used_tiles.empty()) {
-        if (!state.stock.empty()) {
+        throw std::runtime_error("Incorrect move");
+    }
+
+    std::map<Tile, int> hand_counts;
+    for(const auto& tile : state.hands[player]) {
+        hand_counts[tile]++;
+    }
+    for(const auto& tile : used_tiles) {
+        if(hand_counts[tile] == 0) {
+            throw std::runtime_error("Player does not have the required tile: " + std::to_string(tile.number));
+        }
+        hand_counts[tile]--;
+    }
+
+    std::vector<Tile> new_hand;
+    for(const auto& pair : hand_counts) {
+        for(int i = 0; i < pair.second; ++i) {
+            new_hand.push_back(pair.first);
+        }
+    }
+    state.hands[player] = new_hand;
+
+    state.table = new_table;
+
+    if (state.hands[player].empty()) {
+        state.done = true;
+        state.winner = player;
+    }
+}
+
+void GameEngine::next_player(bool placed) {
+    int player = state.current_player;
+    if (!placed) {
+        if (state.stock.empty()) {
+            throw std::runtime_error("Draws from an empty stock");
+        } else {
             state.hands[player].push_back(state.stock.back());
             state.stock.pop_back();
         }
-    } else {
-        std::unordered_map<Tile, int> hand_counts;
-        for(const auto& tile : state.hands[player]) {
-            hand_counts[tile]++;
-        }
-        for(const auto& tile : used_tiles) {
-            if(hand_counts[tile] == 0) {
-                 throw std::runtime_error("Player does not have the required tile: " + std::to_string(tile.number));
-            }
-            hand_counts[tile]--;
-        }
-
-        std::vector<Tile> new_hand;
-        for(const auto& pair : hand_counts) {
-            for(int i = 0; i < pair.second; ++i) {
-                new_hand.push_back(pair.first);
-            }
-        }
-        state.hands[player] = new_hand;
-
-        state.table = new_table;
-
-        if (state.hands[player].empty()) {
-            state.done = true;
-            state.winner = player;
-        }
     }
+
+    state.player_putted = false;
 
     if (!state.done) {
         state.current_player = (state.current_player + 1) % state.players;

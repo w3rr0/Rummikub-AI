@@ -16,6 +16,7 @@ public:
     int current_player;
     bool done;
     std::optional<int> winner;
+    bool player_putted;
 
     GameState(int num_players, int blocks = 14, int r = 13);
 
@@ -31,6 +32,8 @@ public:
     std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>> enumerate_moves(int player);
 
     void apply_move(int player, const std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>& move);
+
+    void next_player(bool placed);
 };
 
 #endif // GAME_LOGIC_H
