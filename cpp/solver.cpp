@@ -1,7 +1,6 @@
 #include "solver.h"
 #include "validation.h"
 #include "tile.h"
-#include <unordered_map>
 #include <set>
 #include <algorithm>
 #include <functional>
@@ -40,11 +39,11 @@ std::set<std::vector<Tile>> generate_all_possible_melds(const std::vector<Tile>&
         unique_tiles_for_groups.push_back(pair.first);
     }
     for (int r = 3; r <= 4; ++r) {
-        if (unique_tiles_for_groups.size() < r) continue;
-        std::vector<std::vector<Tile>> combos = get_combinations(unique_tiles_for_groups, r);
+        if (tiles.size() < r) continue;
+        std::vector<std::vector<Tile>> combos = get_combinations(tiles, r);
         for (auto& combo : combos) {
-            std::sort(combo.begin(), combo.end());
             if (is_valid_group(combo)) {
+                std::sort(combo.begin(), combo.end());
                 possible_melds.insert(combo);
             }
         }
@@ -113,10 +112,10 @@ find_all_valid_moves_cpp(
 ) {
     auto initial_table_canonical = canonical_layout(table);
 
-    std::unordered_map<Tile, int> workspace_tiles_counter;
+    std::map<Tile, int> workspace_tiles_counter;
     for (const auto& tile : hand) workspace_tiles_counter[tile]++;
 
-    std::unordered_map<Tile, int> table_tiles_counter;
+    std::map<Tile, int> table_tiles_counter;
     for (const auto& meld : table) {
         for (const auto& tile : meld) {
             workspace_tiles_counter[tile]++;
@@ -136,7 +135,7 @@ find_all_valid_moves_cpp(
     auto all_melds_set = generate_all_possible_melds(all_tiles_list);
     std::vector<std::vector<Tile>> all_melds(all_melds_set.begin(), all_melds_set.end());
 
-    std::unordered_map<Tile, std::vector<std::vector<Tile>>> tile_to_melds_map;
+    std::map<Tile, std::vector<std::vector<Tile>>> tile_to_melds_map;
     for(const auto& meld : all_melds) {
         std::set<Tile> unique_tiles_in_meld(meld.begin(), meld.end());
         for(const auto& tile : unique_tiles_in_meld) {
@@ -146,9 +145,9 @@ find_all_valid_moves_cpp(
 
     std::set<std::vector<std::vector<Tile>>> solutions;
 
-    std::function<void(std::unordered_map<Tile, int>, std::vector<std::vector<Tile>>)> solve_recursive;
+    std::function<void(std::map<Tile, int>, std::vector<std::vector<Tile>>)> solve_recursive;
     solve_recursive = [&](
-        std::unordered_map<Tile, int> tiles_to_cover,
+        std::map<Tile, int> tiles_to_cover,
         std::vector<std::vector<Tile>> current_layout
     ) {
         if (first_only && !solutions.empty()) {
@@ -178,7 +177,7 @@ find_all_valid_moves_cpp(
         }
 
         for (const auto& meld : tile_to_melds_map.at(tile_to_process)) {
-            std::unordered_map<Tile, int> meld_counter;
+            std::map<Tile, int> meld_counter;
             for (const auto& t : meld) meld_counter[t]++;
 
             bool is_subset = true;
@@ -191,7 +190,7 @@ find_all_valid_moves_cpp(
             }
 
             if (is_subset) {
-                std::unordered_map<Tile, int> new_tiles_to_cover = tiles_to_cover;
+                std::map<Tile, int> new_tiles_to_cover = tiles_to_cover;
                 for (const auto& pair : meld_counter) {
                     new_tiles_to_cover[pair.first] -= pair.second;
                     if (new_tiles_to_cover[pair.first] == 0) {
@@ -213,7 +212,7 @@ find_all_valid_moves_cpp(
 
         bool is_new_layout = (new_table_canonical != initial_table_canonical);
 
-        std::unordered_map<Tile, int> new_table_tiles_counter;
+        std::map<Tile, int> new_table_tiles_counter;
         for(const auto& meld : layout) {
             for(const auto& tile : meld) new_table_tiles_counter[tile]++;
         }
@@ -291,7 +290,7 @@ pre_filter_unplayable_tiles_cpp(
         return {std::vector<Tile>(), std::vector<Tile>()};
     }
 
-    std::unordered_map<Tile, int> pool_counter;
+    std::map<Tile, int> pool_counter;
     int joker_count = 0;
 
     for (const auto& tile : hand) {
@@ -314,7 +313,7 @@ pre_filter_unplayable_tiles_cpp(
     std::vector<Tile> playable_hand;
     std::vector<Tile> unplayable_hand;
 
-    std::unordered_map<Tile, int> hand_counter;
+    std::map<Tile, int> hand_counter;
     for (const auto& tile : hand) {
         hand_counter[tile]++;
     }
