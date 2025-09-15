@@ -9,7 +9,6 @@ PyQt6~=6.9.1
 PyQt6_sip~=13.10.2
 pillow~=11.3.0
 jupyterlab_pygments~=0.3.0
-pip~=24.3.1
 attrs~=25.3.0
 filelock~=3.19.1
 pyzmq~=27.0.2
@@ -110,3 +109,4 @@ python-json-logger~=3.3.0
 prometheus_client~=0.22.1
 jupyter_server_terminals~=0.5.3
 pybind11~=3.0.1
+sb3_contrib
