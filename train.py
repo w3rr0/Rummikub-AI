@@ -66,12 +66,13 @@ def play_game(env, model=None, render=False):
 if __name__ == "__main__":
     env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
 
-    if torch.cuda.is_available():
-        device = "cuda"
-    elif torch.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = "cpu"
+    #if torch.cuda.is_available():
+    #    device = "cuda"
+    #elif torch.backends.mps.is_available():
+    #    device = "mps"
+    #else:
+    #    device = "cpu"
+    device = "cpu" # nie ma działań na macierzach -> cpu szybsze niż gpu
 
     model = None
     if args.model_path:
