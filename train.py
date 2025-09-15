@@ -1,6 +1,7 @@
 import argparse
 from sb3_contrib import MaskablePPO
 import numpy as np
+import time
 
 from environment import RummikubEnv
 
@@ -71,9 +72,12 @@ if __name__ == "__main__":
 
     if args.mode == "test":
         print(f"=== Test {args.total_games} {'game' if args.total_games == 1 else 'games'} ===")
-        nr, w, mp, bp, = 0, [0] * args.players, [0] * args.players, [0] * args.players
+        nr, w, mp, bp, t = 0, [0] * args.players, [0] * args.players, [0] * args.players, [0] * args.total_games
         for j in range(args.total_games):
+            start = time.time()
             n_round, winner, moves_played, blocks_played = play_game(env, model=model, render=True)
+            end = time.time()
+            t[j] = round(end - start, 2)
             nr += n_round
             w[winner] += 1
             for player in range(args.players):
@@ -88,6 +92,7 @@ if __name__ == "__main__":
 
         print(f"\n===== {args.total_games} games finished =====")
         print(f"Total rounds: {nr}")
+        print(f"Average game time: {sum(t) / len(t)}")
         for i in range(args.players):
             print(f"Player {i} - Total wins: {w[i]}, Total moves: {mp[i]}, Total tiles placed: {bp[i]}")
 
