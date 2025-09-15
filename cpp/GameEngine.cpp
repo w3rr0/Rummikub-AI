@@ -3,6 +3,7 @@
 #include <random>
 #include <stdexcept>
 #include <map>
+#include <string>
 
 
 GameState::GameState(int num_players, int blocks, int r)
