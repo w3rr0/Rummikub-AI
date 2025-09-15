@@ -252,9 +252,9 @@ possible_moves_cpp(
     std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>> all_found_moves;
     std::set<std::vector<std::vector<Tile>>> seen_tables;
 
-    size_t target
+    size_t target;
     if (max_target) {
-        target = std::min(max_target, playable_hand.size())
+        target = std::min(max_target, playable_hand.size());
     } else {
         target = playable_hand.size();
     }
