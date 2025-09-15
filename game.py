@@ -52,7 +52,7 @@ class GameEngine:
         hand = self.state.hands[player]
         table = self.state.table
 
-        moves = ps(hand, table)
+        moves = ps(hand, table, 3)
 
         return moves
 
