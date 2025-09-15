@@ -60,7 +60,7 @@ GameEngine::enumerate_moves(int player) {
     const auto& hand = state.hands[player];
     const auto& table = state.table;
 
-    return possible_moves_cpp(hand, table);
+    return possible_moves_cpp(hand, table, 3);
 }
 
 void GameEngine::apply_move(int player, const std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>& move) {
