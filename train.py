@@ -73,7 +73,7 @@ if __name__ == "__main__":
         print(f"Loaded model from {args.model_path}")
 
     if args.mode == "test":
-        print(f"=== Test {args.total_games} {'game' if args.total_games == 1 else 'games'} ===")
+        print(f"=== Test {args.total_games} {'game' if args.total_games == 1 else 'games'} on {torch.cuda.get_device_name(0) if device == "cuda" else "cpu"} ===")
         nr, w, mp, bp, t = 0, [0] * args.players, [0] * args.players, [0] * args.players, [0] * args.total_games
         for j in range(args.total_games):
             start = time.time()
@@ -99,7 +99,7 @@ if __name__ == "__main__":
             print(f"Player {i} - Total wins: {w[i]}, Total moves: {mp[i]}, Total tiles placed: {bp[i]}")
 
     elif args.mode == "train":
-        print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} ===")
+        print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} on {torch.cuda.get_device_name(0) if device == "cuda" else "cpu"} ===")
         if not model:
             model = MaskablePPO("MlpPolicy", env=env, verbose=2, device=device)
 
