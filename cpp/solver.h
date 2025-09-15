@@ -16,7 +16,8 @@ find_all_valid_moves_cpp(
 std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>>
 possible_moves_cpp(
     const std::vector<Tile>& hand,
-    const std::vector<std::vector<Tile>>& table
+    const std::vector<std::vector<Tile>>& table,
+    const size_t max_target = 0
 );
 
 std::pair<std::vector<Tile>, std::vector<Tile>>

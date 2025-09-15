@@ -239,7 +239,8 @@ find_all_valid_moves_cpp(
 std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>>
 possible_moves_cpp(
     const std::vector<Tile>& hand,
-    const std::vector<std::vector<Tile>>& table
+    const std::vector<std::vector<Tile>>& table,
+    const size_t max_target
 ) {
     auto filtered_hands = pre_filter_unplayable_tiles_cpp(hand, table);
     const auto& playable_hand = filtered_hands.first;
@@ -251,7 +252,14 @@ possible_moves_cpp(
     std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>> all_found_moves;
     std::set<std::vector<std::vector<Tile>>> seen_tables;
 
-    for (size_t r = 1; r <= playable_hand.size(); ++r) {
+    size_t target
+    if (max_target) {
+        target = std::min(max_target, playable_hand.size())
+    } else {
+        target = playable_hand.size();
+    }
+
+    for (size_t r = 1; r <= target; ++r) {
         std::vector<std::vector<Tile>> combinations_of_hand = get_combinations(playable_hand, r);
 
         for (const auto& combo : combinations_of_hand) {
