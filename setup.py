@@ -1,9 +1,15 @@
+import sys
+
 from setuptools import setup, Extension
 import pybind11
 
-cpp_args = ['-std=c++17', '-O3']
+extra_compile_args = []
 linker_args = []
 
+if sys.platform == "win32":
+    extra_compile_args = ["/std:c++17", "/02"]
+else:
+    extra_compile_args = ["-std=c++17", "-O3"]
 
 ext_modules = [
     Extension(
@@ -19,7 +25,7 @@ ext_modules = [
             pybind11.get_include()
         ],
         language='c++',
-        extra_compile_args=cpp_args,
+        extra_compile_args=extra_compile_args,
     ),
 ]
 
