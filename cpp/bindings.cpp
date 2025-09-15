@@ -60,7 +60,8 @@ PYBIND11_MODULE(rummikub_solver, m) {
     m.def("possible_moves", &possible_moves_cpp,
         "Returns all possible new table setups with used tiles",
         py::arg("hand"),
-        py::arg("table"));
+        py::arg("table"),
+        py::arg("max_target") = 0);
 
     py::class_<GameState>(m, "GameState")
         .def(py::init<int, int, int>(), py::arg("players"), py::arg("blocks") = 14, py::arg("r") = 13)
