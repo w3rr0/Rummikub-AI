@@ -169,12 +169,13 @@ def find_all_valid_moves(hand: List[Tile], table: List[List[Tile]], first_only=F
     return final_moves
 
 
-def possible_moves(hand: List[Tile], table: List[List[Tile]]) -> List[Tuple[List[List[Tile]], List[Tile]]]:
+def possible_moves(hand: List[Tile], table: List[List[Tile]], max_target=None) -> List[Tuple[List[List[Tile]], List[Tile]]]:
     """
     Returns all possible new table setups,
     where each table setup is a list of all groups,
     which are lists of tiles belonging to that group
 
+    :param max_target:
     :param hand:
     :param table:
     :return:
@@ -186,7 +187,13 @@ def possible_moves(hand: List[Tile], table: List[List[Tile]]) -> List[Tuple[List
     all_found_moves = []
     seen_tables = set()
 
-    for r in range(1, len(playable_hand) + 1):
+    if max_target:
+        max_target = min(max_target, len(playable_hand))
+    else:
+        max_target = len(playable_hand)
+
+
+    for r in range(1, max_target + 1):
         for combo in combinations(playable_hand, r):
             used_hand_tiles = list(combo)
 
