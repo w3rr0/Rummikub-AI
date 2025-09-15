@@ -2,6 +2,7 @@ import argparse
 from sb3_contrib import MaskablePPO
 import numpy as np
 import time
+import torch
 
 from environment import RummikubEnv
 
@@ -64,10 +65,11 @@ def play_game(env, model=None, render=False):
 
 if __name__ == "__main__":
     env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     model = None
     if args.model_path:
-        model = MaskablePPO.load(args.model_path, env=env)
+        model = MaskablePPO.load(args.model_path, env=env, device=device)
         print(f"Loaded model from {args.model_path}")
 
     if args.mode == "test":
@@ -99,7 +101,7 @@ if __name__ == "__main__":
     elif args.mode == "train":
         print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} ===")
         if not model:
-            model = MaskablePPO("MlpPolicy", env, verbose=2)
+            model = MaskablePPO("MlpPolicy", env=env, verbose=2, device=device)
 
         total_timesteps = args.total_games * args.players * args.blocks_range**2
         model.learn(total_timesteps=total_timesteps)
