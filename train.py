@@ -66,11 +66,6 @@ def play_game(env, model=None, render=False):
 
 
 if __name__ == "__main__":
-    def make_env():
-        return lambda: RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
-
-    env = SubprocVecEnv([make_env() for _ in range(args.num_envs)])
-
     #if torch.cuda.is_available():
     #    device = "cuda"
     #elif torch.backends.mps.is_available():
@@ -85,6 +80,8 @@ if __name__ == "__main__":
         print(f"Loaded model from {args.model_path}")
 
     if args.mode == "test":
+        env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+
         print(f"=== Test {args.total_games} {'game' if args.total_games == 1 else 'games'} on {torch.cuda.get_device_name(0) if device == "cuda" else device} ===")
         nr, w, mp, bp, t = 0, [0] * args.players, [0] * args.players, [0] * args.players, [0] * args.total_games
         for j in range(args.total_games):
@@ -111,6 +108,11 @@ if __name__ == "__main__":
             print(f"Player {i} - Total wins: {w[i]}, Total moves: {mp[i]}, Total tiles placed: {bp[i]}")
 
     elif args.mode == "train":
+        def make_env():
+            return lambda: RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+
+        env = SubprocVecEnv([make_env() for _ in range(args.num_envs)])
+
         print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} on {torch.cuda.get_device_name(0) if device == "cuda" else device} ===")
         if not model:
             model = MaskablePPO("MlpPolicy", env=env, verbose=2, device=device)
