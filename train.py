@@ -73,14 +73,18 @@ if __name__ == "__main__":
     #else:
     #    device = "cpu"
     device = "cpu" # nie ma działań na macierzach -> cpu szybsze niż gpu
-
     model = None
-    if args.model_path:
-        model = MaskablePPO.load(args.model_path, env=env, device=device)
-        print(f"Loaded model from {args.model_path}")
+
+
+    def load_model() -> None:
+        global model
+        if args.model_path:
+            model = MaskablePPO.load(args.model_path, env=env, device=device)
+            print(f"Loaded model from {args.model_path}")
 
     if args.mode == "test":
         env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+        load_model()
 
         print(f"=== Test {args.total_games} {'game' if args.total_games == 1 else 'games'} on {torch.cuda.get_device_name(0) if device == "cuda" else device} ===")
         nr, w, mp, bp, t = 0, [0] * args.players, [0] * args.players, [0] * args.players, [0] * args.total_games
@@ -112,6 +116,7 @@ if __name__ == "__main__":
             return lambda: RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
 
         env = SubprocVecEnv([make_env() for _ in range(args.num_envs)])
+        load_model()
 
         print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} on {torch.cuda.get_device_name(0) if device == "cuda" else device} ===")
         if not model:
