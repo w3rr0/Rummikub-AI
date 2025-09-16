@@ -3,6 +3,7 @@ from sb3_contrib import MaskablePPO
 import numpy as np
 import time
 import torch
+from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from environment import RummikubEnv
 
@@ -16,6 +17,7 @@ parser.add_argument("--total_games", type=int, default=1)
 parser.add_argument("--model_path", type=str, default=None)
 parser.add_argument("--save_path", type=str, default="models/ppo_rummikub")
 parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cpp")
+parser.add_argument("--num_envs", type=int, default=4)
 
 args = parser.parse_args()
 
@@ -64,7 +66,10 @@ def play_game(env, model=None, render=False):
 
 
 if __name__ == "__main__":
-    env = RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+    def make_env():
+        return lambda: RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+
+    env = SubprocVecEnv([make_env() for _ in range(args.num_envs)])
 
     #if torch.cuda.is_available():
     #    device = "cuda"
