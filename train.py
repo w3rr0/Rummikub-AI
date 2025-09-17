@@ -22,6 +22,9 @@ parser.add_argument("--num_envs", type=int, default=4)
 
 args = parser.parse_args()
 
+def mask_fn(env):
+    return env._get_mask()
+
 def play_game(env, model=None, render=False):
     obs, info = env.reset()
     done = False
@@ -114,7 +117,7 @@ if __name__ == "__main__":
 
     elif args.mode == "train":
         def make_env():
-            return lambda: RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine)
+            return lambda: ActionMasker(RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine), mask_fn)
 
         env = SubprocVecEnv([make_env() for _ in range(args.num_envs)])
         load_model()
