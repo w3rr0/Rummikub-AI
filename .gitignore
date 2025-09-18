@@ -6,3 +6,4 @@ tests/__pycache__/
 cpp/CMakeLists.txt
 rummikub_solver.egg-info/
 rummikub_solver.cpython-312-darwin.so
+/models
