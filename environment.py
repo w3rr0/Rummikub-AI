@@ -29,7 +29,7 @@ Tile = TC
 class RummikubEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
 
-    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 13, version: versions = "cpp"):
+    def __init__(self, players: int = 2, blocks_start: int = 14, blocks_range: int = 13, version: versions = "cpp", render_mask: bool = True):
         super().__init__()
         global GameEngine, Color, Tile
         match(version):
@@ -45,6 +45,7 @@ class RummikubEnv(gym.Env):
         self.version = version
         self.players = players
         self.engine = GameEngine(players, blocks_start, blocks_range)
+        self.render_mask = render_mask
 
         self.number_of_tiles = blocks_range * 4 * 2 + 2
         self.observation_space = spaces.Box(
@@ -114,7 +115,10 @@ class RummikubEnv(gym.Env):
         global GameEngine
         self.engine = GameEngine(self.players, self.blocks_start, self.blocks_range)
         obs = self._get_obs()
-        mask = self._get_mask()
+        if self.render_mask:
+            mask = self._get_mask()
+        else:
+            mask = None
         return obs, {"action_mask": mask}
 
     def step(self, action: int):
@@ -142,7 +146,10 @@ class RummikubEnv(gym.Env):
         reward = self._get_reward(player, action)
         terminated = self.engine.state.done
         truncated = False   # Limit ruchów (brak)
-        mask = self._get_mask()
+        if self.render_mask:
+            mask = self._get_mask()
+        else:
+            mask = None
 
         return obs, reward, terminated, truncated, {"action_mask": mask}
 

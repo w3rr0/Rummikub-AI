@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     elif args.mode == "train":
         def make_env():
-            return lambda: ActionMasker(RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine), mask_fn)
+            return lambda: ActionMasker(RummikubEnv(players=args.players, blocks_start=args.blocks_start, blocks_range=args.blocks_range, version=args.engine, render_mask=False), mask_fn)
 
         env = SubprocVecEnv([make_env() for _ in range(args.num_envs)])
         load_model()
