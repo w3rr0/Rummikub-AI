@@ -6,6 +6,10 @@
 #include <functional>
 #include <map>
 #include <numeric>
+#include <vector>
+#include <tuple>
+#include <future>
+#include <mutex>
 
 
 std::vector<std::vector<Tile>> get_combinations(const std::vector<Tile>& tiles, int r) {
@@ -251,38 +255,38 @@ possible_moves_cpp(
 
     std::vector<std::tuple<std::vector<std::vector<Tile>>, std::vector<Tile>>> all_found_moves;
     std::set<std::vector<std::vector<Tile>>> seen_tables;
+    std::mutex mtx;
 
-    size_t target;
-    if (max_target) {
-        target = std::min(max_target, playable_hand.size());
-    } else {
-        target = playable_hand.size();
-    }
+    size_t target = max_target ? std::min(max_target, playable_hand.size()) : playable_hand.size();
 
     for (size_t r = 1; r <= target; ++r) {
         std::vector<std::vector<Tile>> combinations_of_hand = get_combinations(playable_hand, r);
+        std::vector<std::future<void>> futures;
 
         for (const auto& combo : combinations_of_hand) {
-            std::vector<Tile> used_hand_tiles = combo;
+            futures.push_back(std::async(std::launch::async, [&, combo]() {
+                auto used_hand_tiles = combo;
+                auto solution_for_combo = find_all_valid_moves_cpp(used_hand_tiles, table, true);
 
-            std::vector<std::vector<std::vector<Tile>>> solution_for_combo =
-                find_all_valid_moves_cpp(used_hand_tiles, table, true);
+                if (!solution_for_combo.empty()) {
+                    auto solution = solution_for_combo[0];
 
-            if (!solution_for_combo.empty()) {
-                std::vector<std::vector<Tile>> solution = solution_for_combo[0];
+                    std::vector<std::vector<Tile>> sorted_solution = solution;
+                    for (auto& meld : sorted_solution)
+                        std::sort(meld.begin(), meld.end());
+                    std::sort(sorted_solution.begin(), sorted_solution.end());
 
-                std::vector<std::vector<Tile>> sorted_solution = solution;
-                for(auto& meld : sorted_solution) {
-                    std::sort(meld.begin(), meld.end());
+                    std::lock_guard<std::mutex> lock(mtx);
+                    if (seen_tables.find(sorted_solution) == seen_tables.end()) {
+                        all_found_moves.emplace_back(solution, used_hand_tiles);
+                        seen_tables.insert(sorted_solution);
+                    }
                 }
-                std::sort(sorted_solution.begin(), sorted_solution.end());
-
-                if (seen_tables.find(sorted_solution) == seen_tables.end()) {
-                    all_found_moves.emplace_back(solution, used_hand_tiles);
-                    seen_tables.insert(sorted_solution);
-                }
-            }
+            }));
         }
+
+        for (auto& f : futures)
+            f.get();
     }
 
     return all_found_moves;
