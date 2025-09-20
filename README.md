@@ -97,6 +97,8 @@ To get started, run the train.py file with the selected flags:
 - --model_path (path to the model to be used in gameplay) {None}
 - --save_path (the path where the model will be saved after training) {models/ppo_rummikub}
 
+<p align="right">{} - default values</p>
+
 #### example of use
 
 ```sh
