@@ -19,6 +19,8 @@ parser.add_argument("--model_path", type=str, default=None)
 parser.add_argument("--save_path", type=str, default="models/ppo_rummikub")
 parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cpp")
 parser.add_argument("--num_envs", type=int, default=4)
+parser.add_argument("--n_steps", type=int, default=512)
+parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps", "auto"], default="cpu")
 
 args = parser.parse_args()
 
@@ -70,13 +72,15 @@ def play_game(env, model=None, render=False):
 
 
 if __name__ == "__main__":
-    #if torch.cuda.is_available():
-    #    device = "cuda"
-    #elif torch.backends.mps.is_available():
-    #    device = "mps"
-    #else:
-    #    device = "cpu"
-    device = "cpu" # nie ma działań na macierzach -> cpu szybsze niż gpu
+    if args.device == "auto":
+        if torch.cuda.is_available():
+           device = "cuda"
+        elif torch.backends.mps.is_available():
+           device = "mps"
+        else:
+           device = "cpu"
+    else:
+        device = args.device
     model = None
 
 
@@ -124,7 +128,7 @@ if __name__ == "__main__":
 
         print(f"=== Training for around {args.total_games} {'games' if args.total_games != 1 else 'game'} on {torch.cuda.get_device_name(0) if device == "cuda" else device} ===")
         if not model:
-            model = MaskablePPO("MlpPolicy", env=env, verbose=2, device=device)
+            model = MaskablePPO("MlpPolicy", n_steps=args.n_steps, env=env, verbose=2, device=device)
 
         total_timesteps = args.total_games * args.players * args.blocks_range**2
         model.learn(total_timesteps=total_timesteps)
