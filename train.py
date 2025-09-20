@@ -19,7 +19,7 @@ parser.add_argument("--model_path", type=str, default=None)
 parser.add_argument("--save_path", type=str, default="models/ppo_rummikub")
 parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cpp")
 parser.add_argument("--num_envs", type=int, default=4)
-parser.add_argument("--n_steps", type=int, default=512)
+parser.add_argument("--n_steps", type=int, default=128)
 parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps", "auto"], default="cpu")
 
 args = parser.parse_args()
@@ -60,7 +60,7 @@ def play_game(env, model=None, render=False):
         tiles_played[player] += len(used_tiles)
 
         if render:
-            if player == env.players - 1 and action in {0, 1}:
+            if player == env.players - 1 and int(action) in {0, 1}:
                 n_round += 1
                 print(f"\n------ Round {n_round} ------")
             env.render()

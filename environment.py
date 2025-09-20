@@ -124,7 +124,7 @@ class RummikubEnv(gym.Env):
     def step(self, action: int):
         player = self.engine.state.current_player
         moves = self.engine.enumerate_moves(player)
-        print("CHOSEN ACTION:", action)
+        # print("CHOSEN ACTION:", action)
 
         if action >= self.max_actions:
             raise ValueError("Out-of-scope action")
