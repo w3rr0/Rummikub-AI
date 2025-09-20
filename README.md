@@ -88,6 +88,12 @@ To get started, run the train.py file with the selected flags:
   - python (calculations performed in Python without the need to compile an additional library)
   - cpp (faster calculations in c++)
 - --num_envs (number of parallel environments, works only in train mode) {4}
+- --n_steps (number of steps collected per environment before each PPO update) {512}
+- --device {cpu}
+  - auto (automatically selects the device by checking what is available, GPU takes priority)
+  - cpu (default cpu, can be run on any device)
+  - cuda (requires an nvidia GPU and cuda software installed)
+  - mps (requires an Apple M series device)
 - --model_path (path to the model to be used in gameplay) {None}
 - --save_path (the path where the model will be saved after training) {models/ppo_rummikub}
 
