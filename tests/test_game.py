@@ -1,5 +1,7 @@
 import random
+import numpy as np
 
+from python.environment import RummikubEnv
 from python.tile import Tile
 from python.game import GameEngine
 
@@ -26,7 +28,6 @@ def test_enumerate_moves_basic():
     player = engine.state.current_player
     moves = engine.enumerate_moves(player)
 
-    assert any(used == [] for _, used in moves)  # PASS zawsze obecny
     for new_table, used in moves:
         assert all(tile in engine.state.hands[player] for tile in used)
 
@@ -40,7 +41,7 @@ def test_apply_move_pass_and_play():
     # PASS
     initial_hand_len = len(engine.state.hands[player])
     initial_stock_len = len(engine.state.stock)
-    engine.apply_move(player, (engine.state.table, []))
+    engine.next_player(placed=False)
     assert len(engine.state.hands[player]) == initial_hand_len + 1
     assert len(engine.state.stock) == initial_stock_len - 1
     assert engine.state.current_player == 1
@@ -68,11 +69,13 @@ def test_clone_independence():
 # --- Test for full game integration ---
 
 def test_full_game_random_mini():
-    engine = GameEngine(players=2, blocks_start=6, blocks_range=5)
-    while not engine.state.done:
-        player = engine.state.current_player
-        moves = engine.enumerate_moves(player)
-        move = random.choice(moves)
-        engine.apply_move(player, move)
-    assert engine.state.done
-    assert 0 <= engine.state.winner < engine.state.players
+    env = RummikubEnv(blocks_range=6, blocks_start=8)
+    obs, info = env.reset()
+    while not env.engine.state.done:
+        player = env.engine.state.current_player
+        mask = info["action_mask"]
+        valid_actions = np.where(mask)[0]
+        action = np.random.choice(valid_actions)
+        obs, reward, terminated, truncated, info = env.step(action)
+    assert env.engine.state.done
+    assert 0 <= env.engine.state.winner < env.engine.state.players
