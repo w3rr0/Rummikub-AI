@@ -1,5 +1,5 @@
 from typing import List
-from tile import Tile
+from .tile import Tile
 
 
 def is_valid_group(tiles: List[Tile]) -> bool:

@@ -6,11 +6,11 @@ from typing import Literal, List
 from enum import Enum
 
 
-from game import GameEngine as GEP
+from .game import GameEngine as GEP
 from rummikub_solver import GameEngine as GEC
 from rummikub_solver import TileColor as TCC
 
-from tile import Tile as TP
+from .tile import Tile as TP
 from rummikub_solver import Tile as TC
 
 versions = Literal["cpp", "python"]

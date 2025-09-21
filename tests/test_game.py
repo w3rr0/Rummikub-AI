@@ -1,7 +1,7 @@
 import random
 
-from tile import Tile
-from game import GameEngine
+from python.tile import Tile
+from python.game import GameEngine
 
 
 # --- Game initialization test ---

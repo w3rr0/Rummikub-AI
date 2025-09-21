@@ -1,6 +1,6 @@
 import pytest
-from tile import Tile
-from validation import is_valid_group, is_valid_meld, is_table_valid, is_valid_run
+from python.tile import Tile
+from python.validation import is_valid_group, is_valid_meld, is_table_valid, is_valid_run
 
 # Definicje kolorów dla czytelności testów
 R = "Red"

@@ -1,8 +1,8 @@
 from typing import List, Optional, Tuple
 import random
 
-from generation import possible_moves as ps
-from tile import Tile
+from .generation import possible_moves as ps
+from .tile import Tile
 
 
 class GameState:

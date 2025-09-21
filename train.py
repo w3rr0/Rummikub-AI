@@ -6,7 +6,7 @@ import numpy as np
 import time
 import torch
 
-from environment import RummikubEnv
+from python.environment import RummikubEnv
 
 parser = argparse.ArgumentParser()
 

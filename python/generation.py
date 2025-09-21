@@ -2,8 +2,8 @@ from typing import List, Tuple
 from collections import defaultdict, Counter
 from itertools import combinations
 
-from tile import Tile
-from validation import is_valid_group, is_valid_run
+from .tile import Tile
+from .validation import is_valid_group, is_valid_run
 
 
 def generate_all_possible_melds(tiles: List[Tile]) -> List[Tuple[Tile]]:

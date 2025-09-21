@@ -1,6 +1,6 @@
 import pytest
-from tile import Tile
-from generation import generate_all_possible_melds, pre_filter_unplayable_tiles, find_all_valid_moves, possible_moves
+from python.tile import Tile
+from python.generation import generate_all_possible_melds, pre_filter_unplayable_tiles, find_all_valid_moves, possible_moves
 
 # Definicje kolorów dla czytelności testów
 R = "Red"
