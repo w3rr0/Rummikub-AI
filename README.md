@@ -85,8 +85,8 @@ To get started, run the train.py file with the selected flags:
 - --blocks_start (the number of blocks awarded to each player at the start) {14}
 - --total_games (number of games to be played) {1}
 - --engine {cpp}
-  - python (calculations performed in Python without the need to compile an additional library)
-  - cpp (faster calculations in c++)
+  - python (obsolete, not recommended for use)
+  - cpp (performance engine written in c++)
 - --num_envs (number of parallel environments, works only in train mode) {4}
 - --n_steps (number of steps collected per environment before each PPO update) {512}
 - --device {cpu}
