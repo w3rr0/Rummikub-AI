@@ -21,6 +21,7 @@ parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cp
 parser.add_argument("--num_envs", type=int, default=4)
 parser.add_argument("--n_steps", type=int, default=128)
 parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps", "auto"], default="cpu")
+parser.add_argument("--render", type=bool, default=True)
 
 args = parser.parse_args()
 
@@ -98,7 +99,7 @@ if __name__ == "__main__":
         nr, w, mp, bp, t = 0, [0] * args.players, [0] * args.players, [0] * args.players, [0] * args.total_games
         for j in range(args.total_games):
             start = time.time()
-            n_round, winner, moves_played, blocks_played = play_game(env, model=model, render=True)
+            n_round, winner, moves_played, blocks_played = play_game(env, model=model, render=args.render)
             end = time.time()
             t[j] = round(end - start, 2)
             nr += n_round
@@ -130,7 +131,7 @@ if __name__ == "__main__":
         if not model:
             model = MaskablePPO("MlpPolicy", n_steps=args.n_steps, env=env, verbose=2, device=device)
 
-        total_timesteps = args.total_games * args.players * args.blocks_range**2
+        total_timesteps = args.total_games * args.players * args.blocks_range / 4
         model.learn(total_timesteps=total_timesteps)
 
         model.save(args.save_path)
