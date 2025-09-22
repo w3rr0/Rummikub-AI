@@ -21,7 +21,7 @@ parser.add_argument("--engine", type=str, choices=["cpp", "python"], default="cp
 parser.add_argument("--num_envs", type=int, default=4)
 parser.add_argument("--n_steps", type=int, default=128)
 parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps", "auto"], default="cpu")
-parser.add_argument("--render", type=bool, default=True)
+parser.add_argument("--render", type=int, choices=[0, 1], default=1)
 
 args = parser.parse_args()
 
@@ -35,8 +35,9 @@ def play_game(env, model=None, render=False):
     moves_played = [0] * env.players
     tiles_played = [0] * env.players
 
-    print(f"\n------ Round {n_round} ------")
-    env.render()
+    if render:
+        print(f"\n------ Round {n_round} ------")
+        env.render()
 
     while not done:
         player = env.engine.state.current_player
@@ -108,11 +109,12 @@ if __name__ == "__main__":
                 mp[player] += moves_played[player]
                 bp[player] += blocks_played[player]
 
-            print(f"\n===== Game {j+1} finished =====")
-            print(f"Rounds played: {n_round}")
-            for i in range(args.players):
-                print(f"Player {i} - moves: {moves_played[i]}, tiles played: {blocks_played[i]}")
-            print(f"Winner: Player {winner}")
+            if args.render:
+                print(f"\n===== Game {j+1} finished =====")
+                print(f"Rounds played: {n_round}")
+                for i in range(args.players):
+                    print(f"Player {i} - moves: {moves_played[i]}, tiles played: {blocks_played[i]}")
+                print(f"Winner: Player {winner}")
 
         print(f"\n===== {args.total_games} games finished =====")
         print(f"Total rounds: {nr}")
